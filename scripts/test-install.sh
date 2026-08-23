@@ -14,6 +14,9 @@ test_codex_bin="$task_test_root/codex-bin"
 test_plugin_manifest="$task_test_root/plugins.toml"
 test_codex_log="$task_test_root/codex.log"
 test_github_repo="$test_user_home/github/nested/project"
+test_trust_directory="$test_user_home/Projects/example"
+test_trust_codex_home="$task_test_root/trust-codex"
+test_local_projects_file="$task_test_root/projects.toml"
 python_cmd=""
 python_seen=0
 
@@ -88,6 +91,7 @@ EOF
 
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
+  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" >/dev/null
 
 assert_link "$test_codex_home/AGENTS.md" "$repo_root/agent-config/AGENTS.md"
@@ -100,8 +104,8 @@ grep -Fqx "[projects.\"$test_github_repo\"]" "$test_codex_home/config.toml" ||
 if [[ -n "$python_cmd" ]]; then
   "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
     "$test_codex_home/config.toml" || fail "generated config is invalid TOML"
-  "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text()); raise SystemExit(config.get("features", {}).get("fast_mode") is not False)' \
-    "$test_codex_home/config.toml" || fail "generated config must disable features.fast_mode by default"
+  "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text()); raise SystemExit(config.get("features", {}).get("fast_mode") is not True)' \
+    "$test_codex_home/config.toml" || fail "generated config must enable features.fast_mode by default"
 fi
 for preserved_line in \
   'notify = [' \
@@ -125,6 +129,23 @@ done
 
 assert_link "$test_bin_home/agent" "$repo_root/scripts/openrouter.sh"
 
+mkdir -p "$test_trust_directory"
+mkdir -p "$test_trust_codex_home"
+(cd "$test_trust_directory" && \
+  HOME="$test_user_home" CODEX_HOME="$test_trust_codex_home" \
+  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
+  "$test_bin_home/agent" --trust) || fail "agent --trust failed"
+grep -Fqx "[projects.\"$test_trust_directory\"]" "$test_trust_codex_home/config.toml" ||
+  fail "agent --trust did not trust the current directory"
+grep -Fqx "[projects.\"$test_trust_directory\"]" "$test_local_projects_file" ||
+  fail "agent --trust did not persist the current directory in the local projects file"
+(cd "$test_trust_directory" && \
+  HOME="$test_user_home" CODEX_HOME="$test_trust_codex_home" \
+  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
+  "$test_bin_home/agent" --trust) || fail "repeated agent --trust failed"
+[[ "$(grep -Fxc "[projects.\"$test_trust_directory\"]" "$test_trust_codex_home/config.toml")" -eq 1 ]] ||
+  fail "repeated agent --trust duplicated the project entry"
+
 cat >"$test_plugin_manifest" <<'EOF'
 [[marketplaces]]
 name = "example-marketplace"
@@ -146,6 +167,7 @@ chmod +x "$test_codex_bin/codex"
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
   GETKAN_AI_PLUGIN_MANIFEST="$test_plugin_manifest" TEST_CODEX_LOG="$test_codex_log" \
+  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   PATH="$test_codex_bin:$PATH" "$repo_root/scripts/install.sh" >/dev/null
 grep -Fqx 'plugin marketplace add example/marketplace --ref main' "$test_codex_log" ||
   fail "installer did not add the managed marketplace"
@@ -155,6 +177,7 @@ grep -Fqx 'plugin add example-plugin@example-marketplace' "$test_codex_log" ||
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
   GETKAN_AI_PLUGIN_MANIFEST="$test_plugin_manifest" TEST_CODEX_LOG="$test_codex_log" \
+  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   PATH="$test_codex_bin:$PATH" "$repo_root/scripts/install.sh" >/dev/null
 [[ "$(wc -l <"$test_codex_log")" -eq 4 ]] ||
   fail "repeated install did not reconcile every managed plugin entry"
@@ -187,8 +210,8 @@ shopt -u nullglob
 shopt -s nullglob
 config_backups=("$test_codex_home"/backups/getkan-ai-*/config.toml)
 shopt -u nullglob
-[[ ${#config_backups[@]} -eq 1 ]] ||
-  fail "expected one config.toml backup, found ${#config_backups[@]}"
+[[ ${#config_backups[@]} -eq 2 ]] ||
+  fail "expected two config.toml backups after local trust updates, found ${#config_backups[@]}"
 
 link_fixture_dir="$task_test_root/link fixtures"
 mkdir -p "$link_fixture_dir"
@@ -199,6 +222,7 @@ raw_instruction_target="$(readlink "$test_codex_home/AGENTS.md")"
 
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
+  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" >/dev/null
 [[ "$(readlink "$test_codex_home/AGENTS.md")" == "$raw_instruction_target" ]] ||
   fail "idempotent install replaced an equivalent relative link"
@@ -218,7 +242,7 @@ assert_link "$test_bin_home/agent" "$repo_root/scripts/openrouter.sh"
 shopt -s nullglob
 config_backups=("$test_codex_home"/backups/getkan-ai-*/config.toml)
 shopt -u nullglob
-[[ ${#config_backups[@]} -eq 1 ]] ||
+[[ ${#config_backups[@]} -eq 2 ]] ||
   fail "idempotent install created another config.toml backup"
 for preserved_line in \
   'notify = [' \
@@ -236,6 +260,7 @@ rm -- "$test_codex_home/rules"
 ln -s "$repo_root/agent-config/rules/." "$test_codex_home/rules"
 raw_rules_target="$(readlink "$test_codex_home/rules")"
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
+  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" >/dev/null
 [[ "$(readlink "$test_codex_home/rules")" == "$raw_rules_target" ]] ||
   fail "idempotent install replaced an equivalent normalized link"
@@ -249,6 +274,7 @@ ln -s "../cycle fixtures/cycle-a" "$test_codex_home/openrouter.config.toml"
 cycle_error_log="$task_test_root/cycle-error.log"
 
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
+  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" >/dev/null 2>"$cycle_error_log"
 grep -q '^error: too many symbolic-link hops:' "$cycle_error_log" ||
   fail "cyclic link did not report a bounded-resolution error"
@@ -260,6 +286,7 @@ control_error_log="$task_test_root/control-error.log"
 mkdir -p "$control_repo/.git"
 
 if HOME="$control_user_home" CODEX_HOME="$control_codex_home" AGENTS_HOME="$control_agents_home" \
+  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" --dry-run >/dev/null 2>"$control_error_log"; then
   fail "installer accepted a project path containing a control character"
 fi

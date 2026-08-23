@@ -91,6 +91,12 @@ directory (ensure `~/.local/bin` is on `PATH`):
 agent
 ```
 
+Trust the current project directory persistently with:
+
+```bash
+agent --trust
+```
+
 The wrapper reads only `OPENROUTER_API_KEY` from `.env`; the file is ignored by
 Git and must never be committed.
 
@@ -114,9 +120,9 @@ from this repository's markdown files and name the files it used.
 
 The reusable workflow separates planning from implementation and review:
 
-- `$ai-project-manager` reads or creates `AGENTS.md`, `SPEC.md`, `ROADMAP.md`,
-  and `TASKS.md`, pauses at plan-approval boundaries, and executes one
-  reviewable phase at a time.
+- `$ai-project-manager` reads or creates `AGENTS.md`, `docs/SPEC.md`,
+  `docs/ROADMAP.md`, and `docs/TASKS.md`, pauses at plan-approval boundaries,
+  and executes one reviewable phase at a time.
 - Review the final diff, run the repository validation, record manual testing,
   and verify CI and review state before merge.
 
@@ -138,8 +144,8 @@ dependency review for pull requests.
 ## Repository layout
 
 - `AGENTS.md`: instructions for maintaining this repository
-- `SPEC.md`, `ROADMAP.md`, and `TASKS.md`: requirements, phase order, and
-  validated task status
+- `docs/SPEC.md`, `docs/ROADMAP.md`, and `docs/TASKS.md`: requirements,
+  phase order, and validated task status
 - `.agents/skills/`: reusable skills
 - `.env.example`: template for the ignored OpenRouter credential file
 - `agent-config/`: shared Codex and Copilot source configuration, instructions,

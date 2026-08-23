@@ -24,6 +24,7 @@ backup_root="$codex_home/backups/getkan-ai-$timestamp-$$"
 shared_config_home="$repo_root/agent-config"
 copilot_config_home="$repo_root/copilot-config"
 config_source="$shared_config_home/config.toml"
+local_projects_source="${GETKAN_AI_LOCAL_PROJECTS_FILE:-$shared_config_home/projects.toml}"
 plugin_manifest="${GETKAN_AI_PLUGIN_MANIFEST:-$shared_config_home/plugins.toml}"
 github_root="$HOME/github"
 rendered_config=""
@@ -124,10 +125,7 @@ link_managed_path() {
       resolve_status=$?
     fi
 
-    if ((resolve_status == 0)) && [[ "$resolved_target" == "$resolved_source" ]]; then
-      printf 'already linked: %s\n' "$target"
-      return
-    fi
+    return
   fi
 
   if [[ -e "$target" || -L "$target" ]]; then
@@ -173,10 +171,7 @@ link_agent_command() {
       return "$resolve_status"
     fi
 
-    if ((resolve_status == 0)) && [[ "$resolved_target" == "$resolved_source" ]]; then
-      printf 'already linked: %s\n' "$target"
-      return
-    fi
+    return 
   fi
 
   if [[ -e "$target" || -L "$target" ]]; then
@@ -294,6 +289,12 @@ render_managed_config() {
         -o -name target -o -name build -o -name dist \) -prune \
         -name .git -print0
     )
+  fi
+
+  # Keep machine-local trusted projects in a git-ignored overlay file.
+  if [[ -f "$local_projects_source" ]]; then
+    printf '\n# Machine-local trusted project overrides.\n' >>"$rendered_config"
+    cat "$local_projects_source" >>"$rendered_config"
   fi
 
   append_preserved_config_sections "$codex_home/config.toml" "$rendered_config"
@@ -422,7 +423,6 @@ install_managed_config() {
   ensure_parent "$target"
 
   if [[ -f "$target" && ! -L "$target" ]] && cmp -s "$rendered_config" "$target"; then
-    printf 'already installed: %s\n' "$target"
     return
   fi
 
@@ -454,7 +454,6 @@ install_vscode_agent() {
   ensure_parent "$target"
 
   if [[ -f "$target" && ! -L "$target" ]] && cmp -s "$rendered_vscode_agent" "$target"; then
-    printf 'already installed: %s\n' "$target"
     return
   fi
 
@@ -486,10 +485,8 @@ link_copilot_path() {
     else
       resolve_status=$?
     fi
-    if ((resolve_status == 0)) && [[ "$resolved_target" == "$resolved_source" ]]; then
-      printf 'already linked: %s\n' "$target"
-      return
-    fi
+
+    return
   fi
 
   if [[ -e "$target" || -L "$target" ]]; then
@@ -532,5 +529,5 @@ link_agent_command "$repo_root/scripts/openrouter.sh" "$bin_home/agent"
 if "$dry_run"; then
   printf 'dry run complete\n'
 else
-  printf 'installation complete. Restart Codex and VsCode to reload configuration.\n'
+  printf 'installation complete. Restart Agent and VsCode to reload configuration.\n'
 fi

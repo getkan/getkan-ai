@@ -9,9 +9,8 @@ description: Create and maintain repository planning documents, phased implement
 
 1. Inspect repository instructions, current changes, and the active branch.
 2. Identify which planning documents are relevant to the task. Locate each
-   relevant `SPEC.md`, `ROADMAP.md`, or `TASKS.md` at the repository root first,
-   then under `docs/`. If both locations contain a relevant document, read both
-   and surface conflicts.
+   relevant `docs/SPEC.md`, `docs/ROADMAP.md`, or `docs/TASKS.md` in the
+   repository's docs folder and read the current version there.
 3. Determine missing requirements, unresolved decisions, dependencies, risks,
    and implementation impact.
 4. Create a phase plan that maps to acceptance criteria and defines automated
@@ -29,11 +28,12 @@ description: Create and maintain repository planning documents, phased implement
 ```bash
 git status --short
 git branch --show-current
-rg --files -g 'AGENTS.md' -g 'AGENTS.override.md' -g 'SPEC.md' -g 'ROADMAP.md' -g 'TASKS.md'
+rg --files -g 'AGENTS.md' -g 'AGENTS.override.md' -g 'docs/SPEC.md' -g 'docs/ROADMAP.md' -g 'docs/TASKS.md'
 ```
 
 Read every applicable `AGENTS.md` and each planning document relevant to the
-task. Do not assume that planning files live under `docs/`.
+task. Planning files live under `docs/`; do not create or rely on root-level
+variants.
 
 If the user asks to create missing planning files, adapt the templates under
 `assets/project-docs/` to the repository. Remove irrelevant sections instead of
@@ -57,3 +57,4 @@ leaving placeholders or inventing requirements.
 - Completed work updates task status when appropriate.
 - The final diff contains only the intended phase.
 - Final summary lists changed files, checks run, skipped checks, and residual risk.
+- When scaffolding a new project, create a docs folder but have docs gitignored by default.

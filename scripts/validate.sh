@@ -29,9 +29,9 @@ fi
 required_files=(
   "AGENTS.md"
   "README.md"
-  "ROADMAP.md"
-  "SPEC.md"
-  "TASKS.md"
+  "docs/ROADMAP.md"
+  "docs/SPEC.md"
+  "docs/TASKS.md"
   "agent-config/AGENTS.md"
   "agent-config/config.toml"
   "agent-config/openrouter.config.toml"
@@ -63,8 +63,8 @@ if [[ -n "$python_cmd" ]]; then
   "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text()); raise SystemExit(config.get("features", {}).get("memories") is not True)' \
     "$repo_root/agent-config/config.toml" || fail "agent-config/config.toml must enable features.memories"
 
-  "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text()); raise SystemExit(config.get("features", {}).get("fast_mode") is not False)' \
-    "$repo_root/agent-config/config.toml" || fail "agent-config/config.toml must disable features.fast_mode by default"
+  "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text()); raise SystemExit(config.get("features", {}).get("fast_mode") is not True)' \
+    "$repo_root/agent-config/config.toml" || fail "agent-config/config.toml must enable features.fast_mode by default"
 
   if command -v codex >/dev/null 2>&1 && codex_features="$(codex features list 2>/dev/null)"; then
     configured_features="$(

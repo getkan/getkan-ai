@@ -33,6 +33,6 @@ commands used by this repository.
 
 ## Documentation routing
 
-- Read `SPEC.md` for requirements and acceptance criteria.
-- Read `ROADMAP.md` for phase order and exit criteria.
-- Read `TASKS.md` for current work and validation status.
+- Read `docs/SPEC.md` for requirements and acceptance criteria.
+- Read `docs/ROADMAP.md` for phase order and exit criteria.
+- Read `docs/TASKS.md` for current work and validation status.

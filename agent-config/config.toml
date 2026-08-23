@@ -1,75 +1,12 @@
 approval_policy = "never"
-model_reasoning_effort = "high"
-plan_mode_reasoning_effort = "high"
+model_reasoning_effort = "medium"
+plan_mode_reasoning_effort = "medium"
 model_verbosity = "low"
 sandbox_mode = "danger-full-access"
 
 [features]
-fast_mode = false
+fast_mode = true
 memories = true
-
-[projects."/home/getkan/github/getkan-ai"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/resolve-linux"]
-trust_level = "trusted"
-
-[projects."/home/getkan/.local/share/dwm-getkan"]
-trust_level = "trusted"
-
-[projects."/media/drive/Video Production/AAA-Videos to Make"]
-trust_level = "trusted"
-
-[projects."/home/getkan/games/eq-legends"]
-trust_level = "trusted"
-
-[projects."/home/getkan/games/everquest"]
-trust_level = "trusted"
-
-[projects."/home/getkan/Downloads/HUDChallenges 2860 1.4.7 QemLENmWz"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/fallout76-configs"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/3plates"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github"]
-trust_level = "trusted"
-
-[projects."/home/getkan"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/copr-fedora"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/dwm-getkan"]
-trust_level = "trusted"
-
-[projects."/home/getkan/.local/share/mybash"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/website-messages"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/website"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/newsletter"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/streamdeck-dashboard"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/linutil"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/agent-proxy"]
-trust_level = "trusted"
-
-[projects."/home/getkan/github/t3code"]
-trust_level = "trusted"
 
 [tui]
 status_line = ["model-with-reasoning", "current-dir", "project-name", "git-branch"]

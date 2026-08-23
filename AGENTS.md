@@ -57,9 +57,9 @@ portable client instructions shared by Codex and Copilot are stored in
 
 Read only the documents needed for the task:
 
-- `SPEC.md` for product requirements, boundaries, and acceptance criteria.
-- `ROADMAP.md` for ordered outcomes, risks, and phase exit criteria.
-- `TASKS.md` for the current phase, validation status, and remaining work.
+- `docs/SPEC.md` for product requirements, boundaries, and acceptance criteria.
+- `docs/ROADMAP.md` for ordered outcomes, risks, and phase exit criteria.
+- `docs/TASKS.md` for the current phase, validation status, and remaining work.
 - `docs/AI_LAYOUT.md` for agent discovery and installation boundaries.
 - `docs/SKILLS.md` when creating or changing skills.
 - `docs/WORKFLOW.md` when changing the repository development workflow.
@@ -70,11 +70,13 @@ Read only the documents needed for the task:
 
 - Run the smallest meaningful verification during iteration and the requested or
   relevant final verification before reporting done.
+- During implementation, prefer focused checks first (for example a targeted
+  test or lint scope) to keep iteration fast.
 - If verification fails, fix the cause instead of weakening the check.
 - For UI or visual changes, verify visually with screenshots or equivalent
   rendered output.
-- Run `./scripts/validate.sh` after changing configuration, skills, install
-  scripts, or repository layout.
+- Run `./scripts/validate.sh` before commit or pull-request creation when
+  changing configuration, skills, install scripts, or repository layout.
 - Run `./scripts/test-install.sh` directly when diagnosing installer behavior.
 - After the complete local gate passes for a non-trivial change, run
   `codex review --uncommitted`. Verify every finding against the current diff,

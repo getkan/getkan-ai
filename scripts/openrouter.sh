@@ -14,6 +14,50 @@ done
 repo_root="$(cd "$(dirname "$script_path")/.." && pwd)"
 env_file="$repo_root/.env"
 
+ensure_trusted_project() {
+  local config_file="$1"
+  local table_header="$2"
+
+  mkdir -p "$(dirname "$config_file")"
+  if [[ -f "$config_file" ]] && grep -Fqx "$table_header" "$config_file"; then
+    return 1
+  fi
+
+  printf '\n%s\ntrust_level = "trusted"\n' "$table_header" >>"$config_file"
+  return 0
+}
+
+if [[ "${1:-}" == "--trust" ]]; then
+  if [[ $# -ne 1 ]]; then
+    printf 'usage: %s [--trust]\n' "$(basename "$0")" >&2
+    exit 2
+  fi
+
+  codex_home="${CODEX_HOME:-$HOME/.codex}"
+  user_config_file="$codex_home/config.toml"
+  local_config_file="${GETKAN_AI_LOCAL_PROJECTS_FILE:-$repo_root/agent-config/projects.toml}"
+  current_directory="$(pwd -P)"
+  escaped_directory="${current_directory//\\/\\\\}"
+  escaped_directory="${escaped_directory//\"/\\\"}"
+  table_header="[projects.\"$escaped_directory\"]"
+
+  user_status='already trusted'
+  local_status='already trusted'
+
+  if ensure_trusted_project "$user_config_file" "$table_header"; then
+    user_status='trusted'
+  fi
+
+  if ensure_trusted_project "$local_config_file" "$table_header"; then
+    local_status='trusted'
+  fi
+
+  printf '%s in %s\n' "$user_status" "$user_config_file"
+  printf '%s in %s\n' "$local_status" "$local_config_file"
+  printf 'project: %s\n' "$current_directory"
+  exit 0
+fi
+
 if [[ ! -f "$env_file" ]]; then
   printf 'error: create %s from .env.example first\n' "$env_file" >&2
   exit 1

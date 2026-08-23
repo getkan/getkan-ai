@@ -55,7 +55,9 @@ clear `name` and `description`.
 
 - `ai-project-manager`
 - `css`
+- `deep`
 - `js`
+- `learn`
 - `python`
 - `react`
 - `svelte`
