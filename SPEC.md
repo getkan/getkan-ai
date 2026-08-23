@@ -28,6 +28,8 @@ GitHub Copilot and OpenRouter-backed Codex baseline in multiple repositories.
   discovered recursively beneath it on each installation.
 - Provide a globally available `agent` command that launches the
   OpenRouter-backed Codex client from any directory.
+- Synchronize declared Codex marketplaces and plugins with Codex's native CLI
+  while preserving undeclared machine-local plugin state.
 - Preview installation without changing the target system.
 - Preserve existing managed targets in timestamped backups before replacement.
 - Keep credentials, sessions, history, caches, and runtime databases outside

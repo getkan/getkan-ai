@@ -42,6 +42,7 @@ This repository manages only:
 - user configuration defaults
 - command rules
 - reusable skills
+- declared Codex marketplaces and plugins
 
 The installer links instructions, rules, the OpenRouter profile, and skills into
 their documented locations while preserving runtime state. It renders
@@ -49,6 +50,18 @@ their documented locations while preserving runtime state. It renders
 entries for `~/github` and every Git worktree discovered beneath it. Existing
 notification, hook-state, notice, local Node REPL, and runtime
 shell-environment settings are carried forward into the rendered file.
+
+## Codex plugins
+
+`agent-config/plugins.toml` is the portable plugin manifest. Each marketplace
+entry declares its Codex marketplace name, source, and optional Git ref; each
+plugin entry declares a plugin name and its marketplace. The installer adds
+all declared marketplaces before it installs declared plugins through the
+Codex CLI.
+
+This is additive. Existing local plugin configuration not declared by the
+manifest is preserved, and the installer does not track or copy downloaded
+plugins, caches, or credentials.
 
 ## GitHub project trust
 

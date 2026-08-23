@@ -10,6 +10,9 @@ test_copilot_home="$task_test_root/copilot"
 test_copilot_agents_home="$test_copilot_home/agents"
 test_copilot_skills_home="$test_copilot_home/skills"
 test_bin_home="$task_test_root/bin"
+test_codex_bin="$task_test_root/codex-bin"
+test_plugin_manifest="$task_test_root/plugins.toml"
+test_codex_log="$task_test_root/codex.log"
 test_github_repo="$test_user_home/github/nested/project"
 python_cmd=""
 python_seen=0
@@ -121,6 +124,40 @@ for skill_dir in "$repo_root"/.agents/skills/*; do
 done
 
 assert_link "$test_bin_home/agent" "$repo_root/scripts/openrouter.sh"
+
+cat >"$test_plugin_manifest" <<'EOF'
+[[marketplaces]]
+name = "example-marketplace"
+source = "example/marketplace"
+ref = "main"
+
+[[plugins]]
+name = "example-plugin"
+marketplace = "example-marketplace"
+EOF
+mkdir -p "$test_codex_bin"
+cat >"$test_codex_bin/codex" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >>"$TEST_CODEX_LOG"
+EOF
+chmod +x "$test_codex_bin/codex"
+
+HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
+  COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
+  GETKAN_AI_PLUGIN_MANIFEST="$test_plugin_manifest" TEST_CODEX_LOG="$test_codex_log" \
+  PATH="$test_codex_bin:$PATH" "$repo_root/scripts/install.sh" >/dev/null
+grep -Fqx 'plugin marketplace add example/marketplace --ref main' "$test_codex_log" ||
+  fail "installer did not add the managed marketplace"
+grep -Fqx 'plugin add example-plugin@example-marketplace' "$test_codex_log" ||
+  fail "installer did not add the managed plugin"
+
+HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
+  COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
+  GETKAN_AI_PLUGIN_MANIFEST="$test_plugin_manifest" TEST_CODEX_LOG="$test_codex_log" \
+  PATH="$test_codex_bin:$PATH" "$repo_root/scripts/install.sh" >/dev/null
+[[ "$(wc -l <"$test_codex_log")" -eq 4 ]] ||
+  fail "repeated install did not reconcile every managed plugin entry"
 
 installed_vscode_agent="$test_copilot_agents_home/getkan-ai.agent.md"
 [[ -f "$installed_vscode_agent" && ! -L "$installed_vscode_agent" ]] ||

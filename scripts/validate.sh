@@ -114,6 +114,10 @@ if forbidden:
 PY
     fail "agent-config/config.toml contains machine-local runtime or plugin state"
 
+  "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
+    "$repo_root/agent-config/plugins.toml" ||
+    fail "agent-config/plugins.toml is invalid TOML"
+
   for profile_file in "$repo_root"/agent-config/*.config.toml; do
     "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text()); raise SystemExit("projects" in config)' \
       "$profile_file" || fail "${profile_file#"$repo_root"/} must not contain machine-specific project trust"

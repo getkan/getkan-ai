@@ -1,0 +1,13 @@
+# Managed Codex marketplaces and plugins.
+#
+# The installer adds every declared marketplace before installing every declared
+# plugin. Plugin downloads, caches, and authentication remain local to Codex.
+#
+# [[marketplaces]]
+# name = "example-marketplace"
+# source = "owner/example-marketplace"
+# ref = "main"
+#
+# [[plugins]]
+# name = "example-plugin"
+# marketplace = "example-marketplace"

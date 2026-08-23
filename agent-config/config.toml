@@ -1,6 +1,4 @@
 approval_policy = "never"
-model = "moonshotai/kimi-k3"
-model_provider = "openrouter"
 model_reasoning_effort = "high"
 plan_mode_reasoning_effort = "high"
 model_verbosity = "low"
@@ -9,12 +7,6 @@ sandbox_mode = "danger-full-access"
 [features]
 fast_mode = false
 memories = true
-
-[model_providers.openrouter]
-name = "OpenRouter"
-base_url = "https://openrouter.ai/api/v1"
-env_key = "OPENROUTER_API_KEY"
-wire_api = "responses"
 
 [projects."/home/getkan/github/getkan-ai"]
 trust_level = "trusted"

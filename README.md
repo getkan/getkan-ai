@@ -16,15 +16,27 @@ Preview and install:
 
 Restart Codex and VS Code after installation. Existing managed files are backed
 up under `~/.codex/backups/`. Credentials, sessions, history, caches, and
-plugins are not changed by default.
+plugins not declared in the manifest are preserved.
 
 The installer manages:
 
 - `agent-config/` into Codex configuration and Copilot instruction targets
+- declared Codex marketplaces and plugins from `agent-config/plugins.toml`
 - `.agents/skills/` into both `~/.agents/skills/` and `~/.copilot/skills/`
 - the `getkan-ai` Copilot custom agent into `~/.copilot/agents/`
 - a globally available `agent` command in `~/.local/bin/` that launches
   `scripts/openrouter.sh`
+
+## Codex plugins
+
+Declare marketplaces and plugins in `agent-config/plugins.toml`. During a
+normal installation, the installer runs Codex's native marketplace and plugin
+commands for each declaration. This is additive: plugins or marketplaces not
+declared in the manifest remain machine-local and are not removed.
+
+The manifest tracks sources and plugin selections only. Downloaded plugin
+files, caches, credentials, and authentication remain in `~/.codex` and are
+never committed.
 
 ### Trust GitHub projects
 

@@ -24,6 +24,7 @@ backup_root="$codex_home/backups/getkan-ai-$timestamp-$$"
 shared_config_home="$repo_root/agent-config"
 copilot_config_home="$repo_root/copilot-config"
 config_source="$shared_config_home/config.toml"
+plugin_manifest="${GETKAN_AI_PLUGIN_MANIFEST:-$shared_config_home/plugins.toml}"
 github_root="$HOME/github"
 rendered_config=""
 rendered_vscode_agent=""
@@ -298,6 +299,123 @@ render_managed_config() {
   append_preserved_config_sections "$codex_home/config.toml" "$rendered_config"
 }
 
+parse_plugin_manifest() {
+  [[ -f "$plugin_manifest" ]] || return 0
+
+  awk '
+    function fail(message) {
+      print "error: invalid plugin manifest: " message > "/dev/stderr"
+      exit 1
+    }
+    function flush_record(    record) {
+      if (section == "") {
+        return
+      }
+      if (section == "marketplaces") {
+        if (name == "" || source == "") {
+          fail("marketplace entries require name and source")
+        }
+        if (seen_marketplace[name]++) {
+          fail("duplicate marketplace name: " name)
+        }
+        marketplace_records[++marketplace_count] = name "\t" source "\t" ref
+      } else if (section == "plugins") {
+        if (name == "" || marketplace == "") {
+          fail("plugin entries require name and marketplace")
+        }
+        record = name "@" marketplace
+        if (seen_plugin[record]++) {
+          fail("duplicate plugin: " record)
+        }
+        plugin_records[++plugin_count] = record
+      }
+      name = ""
+      source = ""
+      ref = ""
+      marketplace = ""
+    }
+    /^[[:space:]]*($|#)/ { next }
+    /^\[\[marketplaces\]\]$/ {
+      flush_record()
+      section = "marketplaces"
+      next
+    }
+    /^\[\[plugins\]\]$/ {
+      flush_record()
+      section = "plugins"
+      next
+    }
+    {
+      if (section == "") {
+        fail("entries must appear inside [[marketplaces]] or [[plugins]]")
+      }
+      if ($0 !~ /^(name|source|ref|marketplace)[[:space:]]*=[[:space:]]*"[^[:cntrl:]"]*"$/) {
+        fail("unsupported entry: " $0)
+      }
+      key = $0
+      sub(/[[:space:]]*=.*/, "", key)
+      value = $0
+      sub(/^[^=]*=[[:space:]]*"/, "", value)
+      sub(/"$/, "", value)
+      if (key == "name") {
+        name = value
+      } else if (key == "source" && section == "marketplaces") {
+        source = value
+      } else if (key == "ref" && section == "marketplaces") {
+        ref = value
+      } else if (key == "marketplace" && section == "plugins") {
+        marketplace = value
+      } else {
+        fail("entry is not valid for " section ": " key)
+      }
+    }
+    END {
+      flush_record()
+      for (record_index = 1; record_index <= marketplace_count; record_index++) {
+        print "marketplace\t" marketplace_records[record_index]
+      }
+      for (record_index = 1; record_index <= plugin_count; record_index++) {
+        print "plugin\t" plugin_records[record_index]
+      }
+    }
+  ' "$plugin_manifest"
+}
+
+sync_plugins() {
+  local manifest_records
+  local record_type
+  local first_value
+  local second_value
+  local third_value
+
+  manifest_records="$(parse_plugin_manifest)" || return 1
+  [[ -n "$manifest_records" ]] || return 0
+
+  if ! "$dry_run" && ! command -v codex >/dev/null 2>&1; then
+    printf 'error: codex is required to synchronize plugins\n' >&2
+    return 1
+  fi
+
+  while IFS=$'\t' read -r record_type first_value second_value third_value; do
+    case "$record_type" in
+    marketplace)
+      if [[ -n "$third_value" ]]; then
+        run codex plugin marketplace add "$second_value" --ref "$third_value"
+      else
+        run codex plugin marketplace add "$second_value"
+      fi
+      ;;
+    plugin)
+      run codex plugin add "$first_value"
+      ;;
+    *)
+      printf 'error: unexpected plugin manifest record type: %s\n' "$record_type" >&2
+      return 1
+      ;;
+    esac
+  done <<<"$manifest_records"
+}
+
 install_managed_config() {
   local target="$1"
 
@@ -388,6 +506,7 @@ link_copilot_path() {
 render_managed_config
 link_managed_path "$shared_config_home/AGENTS.md" "$codex_home/AGENTS.md"
 install_managed_config "$codex_home/config.toml"
+sync_plugins
 link_managed_path "$shared_config_home/rules" "$codex_home/rules"
 
 for profile in "$shared_config_home"/*.config.toml; do
