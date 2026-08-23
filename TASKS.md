@@ -1,18 +1,19 @@
-# Titus AI tasks
+# Getkan AI tasks
 
 ## Completed phase: Workflow alignment
 
 - [x] Add project planning documents and reusable planning templates.
 - [x] Add a focused pull-request readiness skill.
-- [x] Add isolated Linux, macOS, and Windows installer integration tests.
+- [x] Add an isolated Linux installer integration test.
 - [x] Add pull-request CI, dependency review, Dependabot, and a PR template.
-- [x] Align Claude routing and workflow documentation.
-- [x] Replace the third-party local review loop with built-in Codex review.
-- [x] Add opt-in, cross-platform installation for selected Codex plugins.
+- [x] Add GitHub Copilot repository instructions and OpenRouter configuration.
+- [x] Establish a shared `agent-config/` source for Codex and Copilot.
+- [x] Install repository skills and docs into Copilot user directories.
+- [x] Add a dotenv-backed OpenRouter launcher for Linux.
 - [x] Trust all Git worktrees beneath the current user's `~/github` directory.
 - [x] Run local repository, shell, installer, workflow, and skill validation.
-- [x] Confirm Windows installer integration, including plugin installation and
-  recursive GitHub trust generation, passes in CI.
+- [x] Confirm installer integration and recursive GitHub trust
+  generation passes in CI.
 - [x] Inspect the final diff and stage only workflow-alignment changes.
 
 ## Current phase: Enforced repository governance

@@ -1,0 +1,19 @@
+# OpenRouter profile.
+#
+# Set OPENROUTER_API_KEY in the environment, then launch:
+#   codex --profile openrouter
+#
+# Override the model without editing this file:
+#   codex --profile openrouter --model another-provider/model
+
+model = "moonshotai/kimi-k3"
+model_provider = "openrouter"
+
+[model_providers.openrouter]
+name = "OpenRouter"
+base_url = "https://openrouter.ai/api/v1"
+env_key = "OPENROUTER_API_KEY"
+wire_api = "responses"
+
+[projects."/home/getkan/Projects/personal/getkan-ai"]
+trust_level = "trusted"

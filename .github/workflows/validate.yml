@@ -15,40 +15,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  unix:
-    name: Validate (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
     timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
 
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Run ShellCheck
-        if: runner.os == 'Linux'
         run: shellcheck scripts/*.sh
 
       - name: Validate repository
         run: ./scripts/validate.sh
-
-  windows:
-    name: Validate (windows-latest)
-    runs-on: windows-latest
-    timeout-minutes: 10
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Test PowerShell installer
-        shell: pwsh
-        run: ./scripts/test-install.ps1
 
   dependency-review:
     name: Dependency review

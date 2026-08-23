@@ -1,4 +1,4 @@
-# Skills for Codex
+# Shared skills for Codex and GitHub Copilot
 
 ## Purpose
 
@@ -14,16 +14,18 @@ Use a skill for knowledge that is:
 
 ## Discovery locations
 
-Use the current documented locations:
+Use the current documented location:
 
 ```text
 repository/.agents/skills/<skill-name>/SKILL.md
 ~/.agents/skills/<skill-name>/SKILL.md
+~/.copilot/skills/<skill-name>/SKILL.md
 ```
 
 Codex scans repository skill directories from the working directory up to the
-repository root. The installer links this repository's skills into the user
-location so they are available in other repositories.
+repository root and uses `~/.agents/skills/` for user-wide skills. The
+installer links this repository's skills into both user locations so the same
+workflows are available to Codex and Copilot.
 
 ## Required layout
 
@@ -52,19 +54,14 @@ clear `name` and `description`.
 ## Repository skills
 
 - `ai-project-manager`
-- `bash-scripting`
-- `forgejo-maintainer`
-- `homelab-admin`
-- `hugo`
-- `linux-sysadmin`
-- `mdbook`
-- `podman-operator`
-- `pr-readiness`
-- `python-ai`
-- `quickshell`
-- `rust-cli`
-- `wayfinder`
-- `youtube-thumbnail`
+- `css`
+- `js`
+- `python`
+- `react`
+- `svelte`
+- `tailwind`
+- `ts`
+- `vue`
 
 Run `./scripts/validate.sh` after adding or changing a skill. Validation fails
 when this list and the skill directories drift apart.

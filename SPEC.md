@@ -1,49 +1,59 @@
-# Titus AI specification
+# Getkan AI specification
 
 ## Problem
 
-Codex installations mix portable configuration with credentials, sessions,
-caches, and other machine-local state. Coding agents also need consistent
-instructions and reusable workflows without replacing project-specific
+Agent installations mix portable configuration with credentials, sessions,
+caches, and other machine-local state. Codex and GitHub Copilot also use
+different discovery locations. This repository provides one shared agent base
+and installs adapters for both clients without replacing project-specific
 requirements.
 
 ## Users
 
-The primary user is a developer who works across Linux, macOS, and Windows and
-wants the same safe Codex baseline in multiple repositories.
+The primary user is a developer who works on Linux and wants the same safe
+GitHub Copilot and OpenRouter-backed Codex baseline in multiple repositories.
 
 ## Required behavior
 
-- Install global Codex instructions, configuration, rules, local-model
-  profiles, and reusable skills from this repository.
-- Optionally install an explicit list of recommended Codex plugins from
-  configured marketplaces.
+- Install shared agent instructions, OpenRouter configuration, rules, and
+  reusable workflows from this repository.
+- Provide GitHub Copilot repository instructions for VS Code.
+- Install shared instructions and skills into the appropriate Codex and
+  Copilot user directories while keeping project documentation in the
+  repository.
+- Install a Copilot custom agent named `getkan-ai` that answers setup,
+  workflow, requirement, roadmap, and task-status questions from repository
+  markdown files.
 - Trust the current user's `~/github` directory and every Git worktree
   discovered recursively beneath it on each installation.
+- Provide a globally available `agent` command that launches the
+  OpenRouter-backed Codex client from any directory.
 - Preview installation without changing the target system.
 - Preserve existing managed targets in timestamped backups before replacement.
-- Leave credentials, sessions, history, caches, plugin state, and runtime
-  databases untouched unless plugin installation is explicitly requested.
+- Keep credentials, sessions, history, caches, and runtime databases outside
+  the repository.
 - Support repeated installation without replacing already-correct links.
 - Provide project-planning templates and separate planning from pull-request
   readiness.
-- Use the built-in `codex review --uncommitted` workflow for local review, with
-  validation and review repeated after each actionable fix.
+- Use the configured review workflow with validation repeated after each
+  actionable fix.
 - Validate repository structure, configuration syntax, skill metadata,
   documentation consistency, and installer behavior.
-- Run Linux, macOS, and Windows validation for pull requests and default-branch
-  pushes.
+- Run Linux validation for pull requests and default-branch pushes.
 
 ## Architecture
 
-- `codex-home/` contains portable files installed into `CODEX_HOME`.
+- `agent-config/` is the shared source for Codex and Copilot configuration,
+  instructions, and rules.
 - The installer renders `config.toml` with machine-specific exact trust entries
   while linking the other managed files.
+- The installer generates `~/.copilot/agents/getkan-ai.agent.md` from
+  `agent-config/AGENTS.md` for markdown-grounded questions.
 - `.agents/skills/` contains reusable workflows linked into `AGENTS_HOME`.
-- `scripts/install.sh` and `scripts/install.ps1` perform user-scoped
-  installation.
-- `codex-plugins.txt` records plugin selectors installed only through the
-  explicit plugin option.
+- The same `.agents/skills/` directories are linked into `~/.copilot/skills`.
+- `docs/` contains repository-local reference files loaded when needed.
+- `scripts/install.sh` performs user-scoped installation, including a
+  globally available `agent` command that launches `scripts/openrouter.sh`.
 - `scripts/validate.sh` and installer integration tests provide local and CI
   evidence.
 - `AGENTS.md`, this specification, `ROADMAP.md`, and `TASKS.md` define how the
@@ -60,9 +70,7 @@ wants the same safe Codex baseline in multiple repositories.
 
 ## Compatibility
 
-- The shell installer targets Bash on Linux and macOS.
-- The PowerShell installer targets supported Windows PowerShell environments
-  capable of creating symbolic links.
+- The shell installer targets Bash on Linux.
 - Optional tools may add validation but must not make ordinary installation
   depend on unrelated developer tooling.
 
@@ -70,21 +78,21 @@ wants the same safe Codex baseline in multiple repositories.
 
 - Mirroring the complete Codex home directory.
 - Managing credentials, plugin caches or authentication, sessions, or caches.
-- Installing plugins without an explicit opt-in.
-- Replacing project-specific `AGENTS.md` or requirements.
-- Installing Codex, Claude Code, third-party review CLIs, RTK, or local model
+- Routing GitHub Copilot requests through OpenRouter; these are separate
+  services.
+- Providing one identical runtime for Codex and Copilot; each client retains
+  its own discovery and execution behavior.
+- Replacing project-specific instructions or requirements.
+- Installing Codex, GitHub Copilot, third-party review CLIs, or local model
   servers.
 - Adding security scanners that do not support the repository's languages.
 
 ## Acceptance criteria
 
 - `./scripts/validate.sh` passes from a clean checkout.
-- Linux and macOS installer integration tests verify dry-run safety, backup
+- Linux installer integration tests verify dry-run safety, backup
   preservation, machine-local configuration state, correct links, generated
   GitHub trust entries, and idempotence in isolated temporary directories.
-- Windows CI verifies the equivalent PowerShell installer behavior.
-- Installer tests verify plugin opt-in and dry-run behavior without contacting
-  a live marketplace.
 - Every skill has valid front matter and the documented skill inventory matches
   the actual directories.
 - The pull-request readiness workflow requires a clean Codex review loop and
@@ -95,5 +103,5 @@ wants the same safe Codex baseline in multiple repositories.
 
 ## Unresolved questions
 
-- Whether future installers should offer optional user-wide Claude Code
-  instructions in addition to the repository-local `CLAUDE.md` routing.
+- Whether future installers should add more VS Code-specific automation beyond
+  repository instructions.

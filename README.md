@@ -1,31 +1,30 @@
-# titus-ai
+# getkan-ai
 
-Portable Codex configuration, rules, and reusable skills.
+Shared agent base for GitHub Copilot in VS Code and the OpenRouter-backed Codex
+client. It keeps portable instructions, configuration, rules, reusable skills,
+and reference documentation in one repository, then installs each item into
+the client-specific location that consumes it.
 
 ## Install
 
-Preview and install on Linux or macOS:
+Preview and install:
 
 ```bash
 ./scripts/install.sh --dry-run
 ./scripts/install.sh
 ```
 
-On Windows, run the PowerShell installer from the repository root:
-
-```powershell
-.\scripts\install.ps1 -DryRun
-.\scripts\install.ps1
-```
-
-Restart Codex after installation. Existing managed files are backed up under
-`~/.codex/backups/`. Credentials, sessions, history, caches, and plugins are
-not changed by default.
+Restart Codex and VS Code after installation. Existing managed files are backed
+up under `~/.codex/backups/`. Credentials, sessions, history, caches, and
+plugins are not changed by default.
 
 The installer manages:
 
-- `codex-home/` configuration and rules in `~/.codex/`
-- `.agents/skills/` into `~/.agents/skills/`
+- `agent-config/` into Codex configuration and Copilot instruction targets
+- `.agents/skills/` into both `~/.agents/skills/` and `~/.copilot/skills/`
+- the `getkan-ai` Copilot custom agent into `~/.copilot/agents/`
+- a globally available `agent` command in `~/.local/bin/` that launches
+  `scripts/openrouter.sh`
 
 ### Trust GitHub projects
 
@@ -40,109 +39,74 @@ entry. Rerun the installer after creating or cloning repositories so new
 worktrees are added. Common dependency and build directories are skipped during
 discovery.
 
-### Install recommended plugins
+## Codex basics
 
-[Codex plugin](https://learn.chatgpt.com/docs/plugins) installation is opt-in
-because plugins can add instructions, hooks, and connections to external
-services. Preview or install the repository's selected plugins on Linux or
-macOS with:
+New to Codex? It's OpenAI's coding agent CLI (and IDE extension), separate
+from GitHub Copilot. A few things worth knowing before you dive in:
 
-```bash
-./scripts/install.sh --dry-run --plugins
-./scripts/install.sh --plugins
-```
+- Codex reads configuration from `CODEX_HOME` (`~/.codex` by default),
+  including `AGENTS.md` (instructions), `config.toml` (settings), `rules/`
+  (which shell commands it may run without asking), and skills under
+  `~/.agents/skills`. The installer in this repository populates those files
+  for you; see [docs/AI_LAYOUT.md](docs/AI_LAYOUT.md) for exactly what goes
+  where and why.
+- By default Codex talks to OpenAI's own models. This repository adds an
+  optional `openrouter` profile so you can point Codex at OpenRouter's models
+  instead; see "Codex-OpenRouter Use" below.
+- A "profile" is a named layer of settings (`~/.codex/<profile>.config.toml`)
+  you opt into with `codex --profile <name>`; it overrides `config.toml` only
+  for that run.
+- `AGENTS.md` files are how you give Codex durable project instructions. This
+  repository's maintenance instructions are in [AGENTS.md](AGENTS.md),
+  while the portable client instructions live in `agent-config/AGENTS.md`.
+- Run `codex --help` or start `codex` with no arguments to open the
+  interactive TUI once it is installed and configured.
 
-On Windows:
+## Codex-OpenRouter Use
 
-```powershell
-.\scripts\install.ps1 -DryRun -Plugins
-.\scripts\install.ps1 -Plugins
-```
-
-The selected plugin IDs live in `codex-plugins.txt`. The initial selection is
-`superpowers@openai-curated`. Start a new Codex session after installation so
-its skills become available. The managed global instructions tell Codex to
-skip the full Superpowers methodology for trivial, low-risk edits.
-
-For GitHub-heavy projects, the broader priority order is:
-
-1. **Superpowers plugin** for planning, TDD, debugging, and delivery workflows.
-2. **GitHub plugin** for pull requests, issues, reviews, and repository
-   operations.
-3. **Context7 MCP server** for current framework and dependency documentation.
-4. **Playwright or Chrome DevTools MCP server** for frontend testing and
-   browser debugging.
-5. **Codex Security plugin** for vulnerability analysis and remediation.
-6. **Sentry plugin** for production debugging.
-
-Only the entries in `codex-plugins.txt` are installed by `--plugins`. Context7,
-Playwright, and Chrome DevTools are
-[MCP servers](https://learn.chatgpt.com/docs/extend/mcp) rather than plugins and
-require separate configuration. GitHub, Codex Security, and Sentry remain
-opt-in until they are added to the manifest because they can require service
-authorization or project-specific setup. Plugin directories do not provide
-reliable public installation counts, so the ranking is based on fit for this
-workflow rather than unverifiable popularity.
-
-### Install RTK
-
-[RTK](https://github.com/rtk-ai/rtk) is an optional Rust CLI proxy that
-compresses verbose command output before it reaches Codex's context window.
-Install it directly from GitHub:
+For the OpenRouter-backed Codex client, copy `.env.example` to `.env`, add the
+key, and launch through the repository wrapper:
 
 ```bash
-cargo install --git https://github.com/rtk-ai/rtk
+cp .env.example .env
+./scripts/openrouter.sh
 ```
 
-Do not use `cargo install rtk`. The `rtk` package name on crates.io belongs to
-a different project.
-
-Ensure Cargo's binary directory is on `PATH`:
+Or, after installing, use the globally available `agent` command from any
+directory (ensure `~/.local/bin` is on `PATH`):
 
 ```bash
-export PATH="$HOME/.cargo/bin:$PATH"
+agent
 ```
 
-Then verify both the binary and its output-savings command:
+The wrapper reads only `OPENROUTER_API_KEY` from `.env`; the file is ignored by
+Git and must never be committed.
 
-```bash
-rtk --version
-rtk gain
-```
+## Copilot in VS Code
 
-The managed `codex-home/AGENTS.md` already instructs Codex to use RTK selectively
-for commands whose large or repetitive output benefits from filtering, so no
-separate `rtk init` step is required after running this repository's installer.
-Short commands and commands that require exact output remain raw.
+GitHub Copilot loads the repository instructions from
+[.github/copilot-instructions.md](.github/copilot-instructions.md) in VS Code.
+Copilot is a separate service and cannot be configured to use OpenRouter as its
+model endpoint.
 
-## Use
+The installer generates `~/.copilot/agents/getkan-ai.agent.md` from
+`agent-config/AGENTS.md`, adding Copilot-specific metadata. It links repository
+skills into `~/.copilot/skills` without installing documentation as global
+instructions.
 
-Start Codex normally to use the default configuration:
-
-```bash
-codex
-```
-
-Invoke a skill explicitly when needed:
-
-```text
-$linux-sysadmin diagnose this service failure
-$python-ai add an Ollama-backed model provider
-$rust-cli add a new subcommand
-```
-
-Codex can also select skills automatically based on their descriptions.
+Set `COPILOT_HOME` before installing to use a different Copilot root. In
+Copilot Chat, select `getkan-ai` and ask whether it is working; it should answer
+from this repository's markdown files and name the files it used.
 
 ## AI development workflow
 
-The reusable workflow separates planning from pull-request readiness:
+The reusable workflow separates planning from implementation and review:
 
 - `$ai-project-manager` reads or creates `AGENTS.md`, `SPEC.md`, `ROADMAP.md`,
   and `TASKS.md`, pauses at plan-approval boundaries, and executes one
   reviewable phase at a time.
-- `$pr-readiness` validates the final diff, runs `codex review --uncommitted`
-  until no actionable findings remain, records manual testing, and verifies CI
-  and review state before merge.
+- Review the final diff, run the repository validation, record manual testing,
+  and verify CI and review state before merge.
 
 Project-document templates live under
 `.agents/skills/ai-project-manager/assets/project-docs/`. Adapt them to the
@@ -150,43 +114,13 @@ project instead of leaving placeholder requirements.
 
 See [docs/WORKFLOW.md](docs/WORKFLOW.md) for the complete lifecycle.
 
-## Local models
-
-Local model profiles are optional and do not change the default provider.
-
-Ollama:
-
-```bash
-ollama pull qwen3-coder
-codex --profile ollama
-```
-
-llama.cpp:
-
-```bash
-llama-server --model /path/to/model.gguf --jinja --port 8080
-codex --profile llamacpp
-```
-
-Override either profile's model with `--model`:
-
-```bash
-codex --profile ollama --model another-model
-codex --profile llamacpp --model another-model
-```
-
-Local models need reliable structured tool calling for effective Codex use.
-The llama.cpp profile expects a Responses-compatible endpoint at
-`http://127.0.0.1:8080/v1`.
-
 ## Validate
 
 ```bash
 ./scripts/validate.sh
 ```
 
-The validation includes an isolated Linux or macOS installer integration test.
-GitHub Actions also exercises the PowerShell installer on Windows and runs
+The validation includes an isolated Linux installer integration test and runs
 dependency review for pull requests.
 
 ## Repository layout
@@ -195,10 +129,15 @@ dependency review for pull requests.
 - `SPEC.md`, `ROADMAP.md`, and `TASKS.md`: requirements, phase order, and
   validated task status
 - `.agents/skills/`: reusable skills
-- `codex-plugins.txt`: opt-in Codex plugin selections
-- `codex-home/`: portable global instructions, configuration, profiles, and rules
+- `.env.example`: template for the ignored OpenRouter credential file
+- `agent-config/`: shared Codex and Copilot source configuration, instructions,
+  and rules
 - `docs/`: reference documentation loaded only when explicitly requested
 - `scripts/`: installation and validation
 
-See [docs/CODEX_LAYOUT.md](docs/CODEX_LAYOUT.md) for detailed discovery and
+See [docs/AI_LAYOUT.md](docs/AI_LAYOUT.md) for detailed discovery and
 configuration behavior.
+
+For background, see [docs/CODEX_INTRODUCTION.md](docs/CODEX_INTRODUCTION.md)
+and [docs/AI_CODING_AGENTS.md](docs/AI_CODING_AGENTS.md). For reducing model
+usage and cost, see [docs/TOKEN_OPTIMIZATION.md](docs/TOKEN_OPTIMIZATION.md).

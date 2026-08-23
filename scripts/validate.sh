@@ -5,8 +5,6 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 errors=0
 python_cmd=""
 python_seen=0
-powershell_cmd=""
-host_os="$(uname -s)"
 
 for candidate in python3 python; do
   if ! command -v "$candidate" >/dev/null 2>&1; then
@@ -15,21 +13,6 @@ for candidate in python3 python; do
   python_seen=1
   if "$candidate" -c 'import sys; __import__("tomllib" if sys.version_info >= (3, 11) else "tomli")' >/dev/null 2>&1; then
     python_cmd="$candidate"
-    break
-  fi
-done
-
-powershell_candidates=(pwsh)
-case "$host_os" in
-MINGW* | MSYS* | CYGWIN*)
-  powershell_candidates+=(powershell.exe powershell)
-  ;;
-esac
-
-for candidate in "${powershell_candidates[@]}"; do
-  if command -v "$candidate" >/dev/null 2>&1 &&
-    "$candidate" -NoProfile -NonInteractive -Command 'exit 0' >/dev/null 2>&1; then
-    powershell_cmd="$candidate"
     break
   fi
 done
@@ -45,26 +28,25 @@ fi
 
 required_files=(
   "AGENTS.md"
-  "CLAUDE.md"
   "README.md"
   "ROADMAP.md"
   "SPEC.md"
   "TASKS.md"
-  "codex-plugins.txt"
-  "codex-home/AGENTS.md"
-  "codex-home/config.toml"
-  "codex-home/ollama.config.toml"
-  "codex-home/llamacpp.config.toml"
-  "codex-home/rules/default.rules"
-  "docs/CODEX_LAYOUT.md"
+  "agent-config/AGENTS.md"
+  "agent-config/config.toml"
+  "agent-config/openrouter.config.toml"
+  "agent-config/rules/default.rules"
+  "docs/AI_LAYOUT.md"
+  ".github/copilot-instructions.md"
+  ".env.example"
+  "scripts/openrouter.sh"
   "docs/SKILLS.md"
   "docs/WORKFLOW.md"
+  "docs/LOCAL_MODEL_INTEGRATION.md"
   ".github/dependabot.yml"
   ".github/pull_request_template.md"
   ".github/workflows/validate.yml"
-  "scripts/install.ps1"
   "scripts/install.sh"
-  "scripts/test-install.ps1"
   "scripts/test-install.sh"
 )
 
@@ -72,44 +54,34 @@ for relative in "${required_files[@]}"; do
   [[ -f "$repo_root/$relative" ]] || fail "missing $relative"
 done
 
-if grep -Evq '^[a-z0-9][a-z0-9-]*@[a-z0-9][a-z0-9-]*$' "$repo_root/codex-plugins.txt"; then
-  fail "codex-plugins.txt contains an invalid plugin selector"
-fi
-
-plugin_count="$(grep -Ec '^[a-z0-9][a-z0-9-]*@[a-z0-9][a-z0-9-]*$' "$repo_root/codex-plugins.txt" || true)"
-[[ "$plugin_count" -gt 0 ]] || fail "codex-plugins.txt contains no plugins"
-
-duplicate_plugins="$(sort "$repo_root/codex-plugins.txt" | uniq -d)"
-[[ -z "$duplicate_plugins" ]] || fail "codex-plugins.txt contains duplicate plugins"
-
 if [[ -n "$python_cmd" ]]; then
-  for config_file in "$repo_root"/codex-home/*.toml; do
+  for config_file in "$repo_root"/agent-config/*.toml; do
     "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' "$config_file" ||
       fail "invalid TOML in ${config_file#"$repo_root"/}"
   done
 
   "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text()); raise SystemExit(config.get("features", {}).get("memories") is not True)' \
-    "$repo_root/codex-home/config.toml" || fail "codex-home/config.toml must enable features.memories"
+    "$repo_root/agent-config/config.toml" || fail "agent-config/config.toml must enable features.memories"
 
   "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text()); raise SystemExit(config.get("features", {}).get("fast_mode") is not False)' \
-    "$repo_root/codex-home/config.toml" || fail "codex-home/config.toml must disable features.fast_mode by default"
+    "$repo_root/agent-config/config.toml" || fail "agent-config/config.toml must disable features.fast_mode by default"
 
   if command -v codex >/dev/null 2>&1 && codex_features="$(codex features list 2>/dev/null)"; then
     configured_features="$(
       "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text()); print("\n".join(config.get("features", {})))' \
-        "$repo_root/codex-home/config.toml"
+        "$repo_root/agent-config/config.toml"
     )"
     removed_features="$(awk '$2 == "removed" { print $1 }' <<<"$codex_features")"
 
     while IFS= read -r feature; do
       [[ -n "$feature" ]] || continue
       if grep -Fxq -- "$feature" <<<"$removed_features"; then
-        fail "codex-home/config.toml configures removed feature: $feature"
+        fail "agent-config/config.toml configures removed feature: $feature"
       fi
     done <<<"$configured_features"
   fi
 
-  "$python_cmd" - "$repo_root/codex-home/config.toml" <<'PY' ||
+  "$python_cmd" - "$repo_root/agent-config/config.toml" <<'PY' ||
 import pathlib
 import sys
 try:
@@ -140,14 +112,14 @@ if forbidden:
     print("runtime state in portable config: " + ", ".join(forbidden), file=sys.stderr)
     raise SystemExit(1)
 PY
-    fail "codex-home/config.toml contains machine-local runtime or plugin state"
+    fail "agent-config/config.toml contains machine-local runtime or plugin state"
 
-  for profile_file in "$repo_root"/codex-home/*.config.toml; do
+  for profile_file in "$repo_root"/agent-config/*.config.toml; do
     "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text()); raise SystemExit("projects" in config)' \
       "$profile_file" || fail "${profile_file#"$repo_root"/} must not contain machine-specific project trust"
   done
 
-  "$python_cmd" - "$repo_root/AGENTS.md" "$repo_root/codex-home/AGENTS.md" <<'PY' ||
+  "$python_cmd" - "$repo_root/AGENTS.md" "$repo_root/agent-config/AGENTS.md" <<'PY' ||
 import pathlib
 import re
 import sys
@@ -176,12 +148,12 @@ def bullet_rules(path):
 
 duplicates = sorted(bullet_rules(sys.argv[1]) & bullet_rules(sys.argv[2]))
 if duplicates:
-    print("duplicate AGENTS.md rules:", file=sys.stderr)
+    print("duplicate repository/global instruction rules:", file=sys.stderr)
     for duplicate in duplicates:
         print(f"  {duplicate}", file=sys.stderr)
     raise SystemExit(1)
 PY
-    fail "root and global AGENTS.md files contain duplicate rules"
+    fail "repository and global instruction files contain duplicate rules"
 fi
 
 if [[ -d "$repo_root/.codex/skills" ]]; then
@@ -229,10 +201,6 @@ for forbidden in auth.json history.jsonl installation_id state_5.sqlite goals_1.
   [[ ! -e "$repo_root/$forbidden" ]] || fail "runtime file must not be tracked: $forbidden"
 done
 
-if grep -Fq "C:\\\\Program Files\\\\PowerShell\\\\" "$repo_root/codex-home/rules/default.rules"; then
-  fail "codex-home/rules/default.rules contains a machine-specific PowerShell approval"
-fi
-
 if command -v git >/dev/null 2>&1 &&
   git -C "$repo_root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   if git -C "$repo_root" ls-files | grep -Eq '(^|/)(auth\.json|history\.jsonl|installation_id|.*\.sqlite(-shm|-wal)?)$'; then
@@ -258,21 +226,21 @@ fi
 if command -v codex >/dev/null 2>&1 && codex --version >/dev/null 2>&1; then
   read_only_policy_result="$(
     codex execpolicy check \
-      --rules "$repo_root/codex-home/rules/default.rules" \
+      --rules "$repo_root/agent-config/rules/default.rules" \
       rg --files
-  )" || fail "invalid codex-home/rules/default.rules"
+  )" || fail "invalid agent-config/rules/default.rules"
 
   forbidden_policy_result="$(
     codex execpolicy check \
-      --rules "$repo_root/codex-home/rules/default.rules" \
+      --rules "$repo_root/agent-config/rules/default.rules" \
       gh repo delete owner/repo --yes
-  )" || fail "invalid codex-home/rules/default.rules"
+  )" || fail "invalid agent-config/rules/default.rules"
 
   wrapper_policy_result="$(
     codex execpolicy check \
-      --rules "$repo_root/codex-home/rules/default.rules" \
+      --rules "$repo_root/agent-config/rules/default.rules" \
       rtk git push --force
-  )" || fail "invalid codex-home/rules/default.rules"
+  )" || fail "invalid agent-config/rules/default.rules"
 
   if [[ -n "$python_cmd" ]]; then
     "$python_cmd" -c 'import json, sys; raise SystemExit(json.loads(sys.argv[1]).get("decision") != "allow")' \
@@ -284,57 +252,9 @@ if command -v codex >/dev/null 2>&1 && codex --version >/dev/null 2>&1; then
   fi
 fi
 
-if [[ -n "$powershell_cmd" ]]; then
-  for powershell_file in \
-    "$repo_root/scripts/install.ps1" \
-    "$repo_root/scripts/test-install.ps1"; do
-    # The PowerShell variables must not expand in Bash.
-    # shellcheck disable=SC2016
-    TITUS_AI_POWERSHELL_FILE="$powershell_file" "$powershell_cmd" -NoProfile -NonInteractive -Command \
-      '$errors = $null; [void][System.Management.Automation.Language.Parser]::ParseFile($env:TITUS_AI_POWERSHELL_FILE, [ref]$null, [ref]$errors); if ($errors.Count) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }' ||
-      fail "PowerShell syntax validation failed for ${powershell_file#"$repo_root"/}"
-  done
+if ! bash "$repo_root/scripts/test-install.sh"; then
+  fail "installer integration test failed"
 fi
-
-windows_symlink_supported() {
-  # The PowerShell variables must not expand in Bash.
-  # shellcheck disable=SC2016
-  "$powershell_cmd" -NoProfile -NonInteractive -Command '
-    $probeRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("titus-ai-symlink-probe-" + [guid]::NewGuid())
-    $supported = $false
-    try {
-      [void](New-Item -ItemType Directory -Path $probeRoot)
-      $target = Join-Path $probeRoot "target.txt"
-      $link = Join-Path $probeRoot "link.txt"
-      [System.IO.File]::WriteAllText($target, "probe")
-      [void](New-Item -ItemType SymbolicLink -Path $link -Target $target -ErrorAction Stop)
-      $supported = $true
-    } catch {
-    } finally {
-      Remove-Item -LiteralPath $probeRoot -Recurse -Force -ErrorAction SilentlyContinue
-    }
-    if (-not $supported) { exit 1 }
-  '
-}
-
-case "$host_os" in
-MINGW* | MSYS* | CYGWIN*)
-  if [[ -z "$powershell_cmd" ]]; then
-    fail "Windows PowerShell (pwsh or powershell.exe) is required for installer validation"
-  elif windows_symlink_supported; then
-    if ! "$powershell_cmd" -NoProfile -NonInteractive -File "$repo_root/scripts/test-install.ps1"; then
-      fail "Windows installer integration test failed"
-    fi
-  else
-    printf '%s\n' "warning: skipping Windows installer integration test because symlink creation requires Developer Mode or administrator privileges" >&2
-  fi
-  ;;
-*)
-  if ! bash "$repo_root/scripts/test-install.sh"; then
-    fail "installer integration test failed"
-  fi
-  ;;
-esac
 
 if [[ $errors -gt 0 ]]; then
   printf 'validation failed with %d error(s)\n' "$errors" >&2

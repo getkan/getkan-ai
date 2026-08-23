@@ -1,0 +1,91 @@
+approval_policy = "never"
+model = "moonshotai/kimi-k3"
+model_provider = "openrouter"
+model_reasoning_effort = "high"
+plan_mode_reasoning_effort = "high"
+model_verbosity = "low"
+sandbox_mode = "danger-full-access"
+
+[features]
+fast_mode = false
+memories = true
+
+[model_providers.openrouter]
+name = "OpenRouter"
+base_url = "https://openrouter.ai/api/v1"
+env_key = "OPENROUTER_API_KEY"
+wire_api = "responses"
+
+[projects."/home/getkan/github/getkan-ai"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/resolve-linux"]
+trust_level = "trusted"
+
+[projects."/home/getkan/.local/share/dwm-getkan"]
+trust_level = "trusted"
+
+[projects."/media/drive/Video Production/AAA-Videos to Make"]
+trust_level = "trusted"
+
+[projects."/home/getkan/games/eq-legends"]
+trust_level = "trusted"
+
+[projects."/home/getkan/games/everquest"]
+trust_level = "trusted"
+
+[projects."/home/getkan/Downloads/HUDChallenges 2860 1.4.7 QemLENmWz"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/fallout76-configs"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/3plates"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github"]
+trust_level = "trusted"
+
+[projects."/home/getkan"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/copr-fedora"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/dwm-getkan"]
+trust_level = "trusted"
+
+[projects."/home/getkan/.local/share/mybash"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/website-messages"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/website"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/newsletter"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/streamdeck-dashboard"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/linutil"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/agent-proxy"]
+trust_level = "trusted"
+
+[projects."/home/getkan/github/t3code"]
+trust_level = "trusted"
+
+[tui]
+status_line = ["model-with-reasoning", "current-dir", "project-name", "git-branch"]
+status_line_use_colors = true
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+"gpt-5.6-sol" = 4
+
+[desktop]
+followUpQueueMode = "queue"

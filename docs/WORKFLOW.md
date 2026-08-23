@@ -4,20 +4,21 @@
 
 | File | Purpose |
 | --- | --- |
-| `AGENTS.md` | Durable instructions the coding agent loads automatically |
+| `AGENTS.md` | Maintenance instructions for this repository |
+| `agent-config/AGENTS.md` | Portable instructions shared by Codex and Copilot |
 | `SPEC.md` | Product and technical requirements and acceptance criteria |
 | `ROADMAP.md` | Ordered outcomes, dependencies, risks, and exit criteria |
 | `TASKS.md` | Current actionable work and validated status |
-| `.agents/skills/` | Reusable workflows Codex can invoke |
-| `docs/` | Reference material loaded only when requested or linked |
+| `.agents/skills/` | Reusable workflows shared with both clients |
+| `docs/` | Repository-local reference material loaded by reference |
 
 ## Complete lifecycle
 
-1. Install this repository's global instructions, configuration, rules, and
-   reusable skills.
+1. Install this repository's shared instructions, configuration, rules, and
+    reusable skills for Codex and Copilot.
 2. Inspect the real repository, branch, worktree, architecture, runtime paths,
    and existing validation.
-3. Put durable project conventions and boundaries in `AGENTS.md`.
+3. Put repository maintenance conventions and boundaries in `AGENTS.md`.
 4. Define observable requirements, non-goals, and acceptance criteria in
    `SPEC.md`.
 5. Order outcomes, risks, exit criteria, and validation in `ROADMAP.md`.
@@ -27,7 +28,7 @@
 8. Stop for plan approval when the user reserved that checkpoint.
 9. Implement one approved phase, run focused checks, and inspect the diff.
 10. Run the complete local gate and update task status only after it passes.
-11. Use `$pr-readiness` to run the built-in Codex review:
+11. Run the built-in Codex review:
 
     ```bash
     codex review --uncommitted
