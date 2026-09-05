@@ -29,6 +29,7 @@ plugin_manifest="${GETKAN_AI_PLUGIN_MANIFEST:-$shared_config_home/plugins.toml}"
 github_root="$HOME/github"
 rendered_config=""
 rendered_vscode_agent=""
+rendered_vscode_control_agent=""
 
 copilot_home="${COPILOT_HOME:-$HOME/.copilot}"
 copilot_agents_home="$copilot_home/agents"
@@ -51,6 +52,9 @@ cleanup() {
   fi
   if [[ -n "$rendered_vscode_agent" && -f "$rendered_vscode_agent" ]]; then
     rm -f -- "$rendered_vscode_agent"
+  fi
+  if [[ -n "$rendered_vscode_control_agent" && -f "$rendered_vscode_control_agent" ]]; then
+    rm -f -- "$rendered_vscode_control_agent"
   fi
 }
 trap cleanup EXIT
@@ -448,6 +452,14 @@ render_vscode_agent() {
   } >"$rendered_vscode_agent"
 }
 
+render_vscode_control_agent() {
+  rendered_vscode_control_agent="$(mktemp "${TMPDIR:-/tmp}/control-ai-agent.XXXXXX")"
+  {
+    cat "$copilot_config_home/AGENT_CONTROL_HEADER.md"
+    cat "$copilot_config_home/AGENT_CONTROL.md"
+  } >"$rendered_vscode_control_agent"
+}
+
 install_vscode_agent() {
   local target="$1"
 
@@ -466,6 +478,27 @@ install_vscode_agent() {
   fi
 
   run cp "$rendered_vscode_agent" "$target"
+  printf 'installed: %s\n' "$target"
+}
+
+install_vscode_control_agent() {
+  local target="$1"
+
+  ensure_parent "$target"
+
+  if [[ -f "$target" && ! -L "$target" ]] && cmp -s "$rendered_vscode_control_agent" "$target"; then
+    return
+  fi
+
+  if [[ -e "$target" || -L "$target" ]]; then
+    local backup="$backup_root/copilot/agents/$(basename "$target")"
+
+    ensure_parent "$backup"
+    run mv "$target" "$backup"
+    printf 'backed up: %s -> %s\n' "$target" "$backup"
+  fi
+
+  run cp "$rendered_vscode_control_agent" "$target"
   printf 'installed: %s\n' "$target"
 }
 
@@ -518,6 +551,8 @@ done
 
 render_vscode_agent
 install_vscode_agent "$copilot_agents_home/getkan-ai.agent.md"
+render_vscode_control_agent
+install_vscode_control_agent "$copilot_agents_home/control-ai.agent.md"
 
 for skill_dir in "$repo_root"/.agents/skills/*; do
   [[ -d "$skill_dir" ]] || continue
@@ -525,6 +560,8 @@ for skill_dir in "$repo_root"/.agents/skills/*; do
 done
 
 link_agent_command "$repo_root/scripts/openrouter.sh" "$bin_home/agent"
+link_agent_command "$repo_root/scripts/control-ai-hook.sh" "$bin_home/control-ai-hook"
+link_agent_command "$repo_root/scripts/getkan-ai-hook.sh" "$bin_home/getkan-ai-hook"
 
 if "$dry_run"; then
   printf 'dry run complete\n'

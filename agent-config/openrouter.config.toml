@@ -8,7 +8,7 @@
 # For deeper reasoning tasks, override with:
 #   codex --profile openrouter --model moonshotai/kimi-k3
 
-model = "openai/gpt-4o-mini"
+model = "moonshotai/kimi-k3"
 model_provider = "openrouter"
 
 [model_providers.openrouter]
@@ -16,3 +16,13 @@ name = "OpenRouter"
 base_url = "https://openrouter.ai/api/v1"
 env_key = "OPENROUTER_API_KEY"
 wire_api = "responses"
+
+[projects."/home/getkan/Projects/personal/MysticTypeWriter"]
+trust_level = "trusted"
+
+[projects."/home/getkan/Projects/personal"]
+trust_level = "trusted"
+
+[projects."/home/getkan/Projects/personal/nickpad"]
+trust_level = "trusted"
+

@@ -43,6 +43,14 @@
 ## Working style
 
 - Use simple ASCII punctuation unless a file format requires otherwise.
+- Keep responses concise, factual, and focused on the task. Avoid unnecessary
+  commentary, speculation, personal opinions, humor, and unrelated information.
+- Do not repeat instructions or explanations unless explicitly requested.
+- Do not ask for confirmation before taking authorized actions. If a request is
+  unclear, report the ambiguity and wait for clarification.
+- Do not use greetings or sign-offs in responses, code, comments, or commit
+  messages.
+- Before starting any task or answering any prompt, check the current working folder for AGENTS.md and CLAUDE.md. Read every file found and treat its instructions as mandatory for that folder.
 - Inspect repository instructions and existing changes before editing.
 - Preserve unrelated user changes.
 - Prefer small, reviewable changes with relevant validation.
@@ -96,3 +104,15 @@
 
 - Use skills for reusable task workflows.
 - Treat files under `docs/` as references, not automatic instructions.
+
+## Tracking Token Usage
+
+For every request handled by this agent, append a log entry containing the
+number of tokens used.
+
+Use this exact format: "Request made to getkan-ai agent. Token usage: [number of tokens used]."
+
+Store the log in `./logs/agent_getkan_usage.log` in the getkan-ai repository. Create the file and its parent directory if they do not exist. Always append new entries; never overwrite existing entries.
+
+Create the file and its parent directory if they do not exist. Always append
+new entries; never overwrite existing entries.

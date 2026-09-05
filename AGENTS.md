@@ -57,8 +57,8 @@ portable client instructions shared by Codex and Copilot are stored in
 
 Read only the documents needed for the task:
 
-- `docs/SPEC.md` for product requirements, boundaries, and acceptance criteria.
-- `docs/ROADMAP.md` for ordered outcomes, risks, and phase exit criteria.
+- `docs/SPEC.md` for product requirements, boundaries, acceptance criteria, and resources for learning more about technologies utilized in the project.
+- `docs/ROADMAP.md` for ordered outcomes, risks, phase exit criteria, and a log of changes over time.
 - `docs/TASKS.md` for the current phase, validation status, and remaining work.
 - `docs/AI_LAYOUT.md` for agent discovery and installation boundaries.
 - `docs/SKILLS.md` when creating or changing skills.

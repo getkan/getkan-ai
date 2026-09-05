@@ -192,6 +192,14 @@ grep -Fqx 'tools: [read, edit, search, execute, todo, agent]' "$installed_vscode
 grep -Fq 'Use `rtk`' "$installed_vscode_agent" ||
   fail "generated VS Code agent does not mirror agent-config/AGENTS.md"
 
+installed_control_agent="$test_copilot_agents_home/control-ai.agent.md"
+[[ -f "$installed_control_agent" && ! -L "$installed_control_agent" ]] ||
+  fail "expected generated control agent file: $installed_control_agent"
+grep -Fqx 'name: "control-ai"' "$installed_control_agent" ||
+  fail "generated control agent is missing the control-ai name"
+grep -Fq 'Token usage:' "$installed_control_agent" ||
+  fail "generated control agent does not contain token usage logging instructions"
+
 shopt -s nullglob
 vscode_agent_backups=("$test_codex_home"/backups/getkan-ai-*/copilot/agents/getkan-ai.agent.md)
 shopt -u nullglob

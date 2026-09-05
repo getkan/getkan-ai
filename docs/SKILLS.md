@@ -60,10 +60,19 @@ clear `name` and `description`.
 - `learn`
 - `python`
 - `react`
+- `reformat`
 - `svelte`
 - `tailwind`
 - `ts`
 - `vue`
+- `watch`
 
 Run `./scripts/validate.sh` after adding or changing a skill. Validation fails
 when this list and the skill directories drift apart.
+
+The `reformat` skill normalizes pasted or dictated text into clean Markdown
+without changing its words, punctuation, links, code, or meaning.
+
+The `watch` skill runs a local development watch command in a dedicated
+background terminal, restarts it up to three times on process failure, and
+leaves reported errors alone until the user asks for a specific fix.
