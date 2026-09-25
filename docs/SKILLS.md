@@ -54,13 +54,17 @@ clear `name` and `description`.
 ## Repository skills
 
 - `ai-project-manager`
+- `build`
 - `css`
 - `deep`
 - `js`
 - `learn`
+- `plan`
+- `playwrite`
 - `python`
 - `react`
 - `reformat`
+- `reviewer`
 - `svelte`
 - `tailwind`
 - `ts`
@@ -76,3 +80,24 @@ without changing its words, punctuation, links, code, or meaning.
 The `watch` skill runs a local development watch command in a dedicated
 background terminal, restarts it up to three times on process failure, and
 leaves reported errors alone until the user asks for a specific fix.
+
+## Subagents: plan, build, reviewer
+
+`plan`, `build`, and `reviewer` are skills that also render as named
+subagents. The installer renders each one into a client-specific custom
+agent in addition to linking it as an ordinary skill:
+
+- `plan`: read-only investigation and phased planning. Never edits a file.
+- `build`: implements an authorized plan, including feature-specific tests.
+  Can call the `plan` subagent when no plan exists yet.
+- `reviewer`: reviews the current branch's changes and runs the complete
+  test suite. Never edits a file.
+
+The installer renders these into `~/.copilot/agents/<name>.agent.md` and
+`$OPENCODE_HOME/agent/<name>.md` (default `~/.config/opencode/agent/`) using
+each subagent's mode and tool permissions from
+`agent-config/subagents/<name>.config.json`, not from `scripts/install.sh`.
+`plan` and `reviewer` deny `edit` (and, for OpenCode, `task`, which also
+denies calling other subagents). Codex has no native per-agent
+tool-permission mechanism, so Codex sessions rely on the skill's own
+instructions to honor the same boundary.

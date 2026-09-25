@@ -1,22 +1,40 @@
 #!/usr/bin/env bash
+# Installs this repository's shared instructions, configuration, rules,
+# skills, and subagents into Codex, GitHub Copilot, and OpenCode's user
+# directories. When invoked through the installed `agent` symlink, it also
+# launches Codex or OpenCode. See docs/AI_LAYOUT.md for what goes where and
+# docs/CLIENT_REFERENCE.md for how to use the result.
 set -euo pipefail
+
+invoked_name="$(basename "${BASH_SOURCE[0]}")"
+script_path="${BASH_SOURCE[0]}"
+while [[ -L "$script_path" ]]; do
+  link_target="$(readlink "$script_path")"
+  if [[ "$link_target" == /* ]]; then
+    script_path="$link_target"
+  else
+    script_path="$(dirname "$script_path")/$link_target"
+  fi
+done
 
 dry_run=false
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --dry-run)
-      dry_run=true
-      ;;
-    *)
-      printf 'usage: %s [--dry-run]\n' "$0" >&2
-      exit 2
-      ;;
-  esac
-  shift
-done
+if [[ "$invoked_name" != agent ]]; then
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --dry-run)
+        dry_run=true
+        ;;
+      *)
+        printf 'usage: %s [--dry-run]\n' "$0" >&2
+        exit 2
+        ;;
+    esac
+    shift
+  done
+fi
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+repo_root="$(cd "$(dirname "$script_path")/.." && pwd)"
 codex_home="${CODEX_HOME:-$HOME/.codex}"
 agents_home="${AGENTS_HOME:-$HOME/.agents}"
 timestamp="$(date +%Y%m%d-%H%M%S)"
@@ -30,11 +48,13 @@ github_root="$HOME/github"
 rendered_config=""
 rendered_vscode_agent=""
 rendered_vscode_control_agent=""
+rendered_subagent=""
 
 copilot_home="${COPILOT_HOME:-$HOME/.copilot}"
 copilot_agents_home="$copilot_home/agents"
 copilot_skills_home="$copilot_home/skills"
 bin_home="${AGENT_BIN_HOME:-$HOME/.local/bin}"
+opencode_home="${OPENCODE_HOME:-$HOME/.config/opencode}"
 
 run() {
   if "$dry_run"; then
@@ -46,6 +66,8 @@ run() {
   fi
 }
 
+# Removes this run's temporary rendered files. Runs on every exit path
+# (including errors) via the trap below.
 cleanup() {
   if [[ -n "$rendered_config" && -f "$rendered_config" ]]; then
     rm -f -- "$rendered_config" "${rendered_config}.merged" "${rendered_config}.notify"
@@ -56,6 +78,9 @@ cleanup() {
   if [[ -n "$rendered_vscode_control_agent" && -f "$rendered_vscode_control_agent" ]]; then
     rm -f -- "$rendered_vscode_control_agent"
   fi
+  if [[ -n "$rendered_subagent" && -f "$rendered_subagent" ]]; then
+    rm -f -- "$rendered_subagent"
+  fi
 }
 trap cleanup EXIT
 
@@ -63,6 +88,8 @@ ensure_parent() {
   run mkdir -p "$(dirname "$1")"
 }
 
+# Follows a chain of symlinks (relative or absolute) to its final real path,
+# bounded to 64 hops so a symlink cycle fails loudly instead of hanging.
 resolve_path() {
   local path="$1"
   local directory
@@ -103,14 +130,13 @@ resolve_path() {
   printf '%s/%s\n' "$directory" "$(basename "$path")"
 }
 
-link_managed_path() {
+# Creates a symlink at $target -> $source, backing up any pre-existing file
+# at $backup first. Existing managed symlinks are retained only when they
+# resolve to the requested source.
+link_path() {
   local source="$1"
   local target="$2"
-
-  if [[ ! -e "$source" ]]; then
-    printf 'error: managed source does not exist: %s\n' "$source" >&2
-    exit 1
-  fi
+  local backup="$3"
 
   ensure_parent "$target"
 
@@ -119,51 +145,7 @@ link_managed_path() {
     local resolved_target=""
     local resolve_status=0
 
-    if ! resolved_source="$(resolve_path "$source")"; then
-      return 1
-    fi
-
-    if resolved_target="$(resolve_path "$target")"; then
-      resolve_status=0
-    else
-      resolve_status=$?
-    fi
-
-    return
-  fi
-
-  if [[ -e "$target" || -L "$target" ]]; then
-    local relative="${target#"$codex_home"/}"
-    local backup="$backup_root/$relative"
-
-    if [[ "$target" != "$codex_home/"* ]]; then
-      relative="${target#"$agents_home"/}"
-      backup="$backup_root/agents/$relative"
-    fi
-
-    ensure_parent "$backup"
-    run mv "$target" "$backup"
-    printf 'backed up: %s -> %s\n' "$target" "$backup"
-  fi
-
-  run ln -s "$source" "$target"
-  printf 'linked: %s -> %s\n' "$target" "$source"
-}
-
-link_agent_command() {
-  local source="$1"
-  local target="$2"
-
-  ensure_parent "$target"
-
-  if [[ -L "$target" ]]; then
-    local resolved_source
-    local resolved_target=""
-    local resolve_status=0
-
-    if ! resolved_source="$(resolve_path "$source")"; then
-      return 1
-    fi
+    resolved_source="$(resolve_path "$source")" || return 1
 
     if resolved_target="$(resolve_path "$target")"; then
       resolve_status=0
@@ -175,12 +157,18 @@ link_agent_command() {
       return "$resolve_status"
     fi
 
-    return 
+    if ((resolve_status == 2)); then
+      return 0
+    fi
+
+    if [[ "$resolved_source" == "$resolved_target" ]]; then
+      return
+    fi
+
+    run rm -- "$target"
   fi
 
   if [[ -e "$target" || -L "$target" ]]; then
-    local backup="$backup_root/bin/$(basename "$target")"
-
     ensure_parent "$backup"
     run mv "$target" "$backup"
     printf 'backed up: %s -> %s\n' "$target" "$backup"
@@ -188,6 +176,66 @@ link_agent_command() {
 
   run ln -s "$source" "$target"
   printf 'linked: %s -> %s\n' "$target" "$source"
+}
+
+# Installs the already-rendered file at $rendered_path to $target, skipping
+# the copy when $target already matches, and backing up any existing file
+# that differs first.
+install_rendered_file() {
+  local rendered_path="$1"
+  local target="$2"
+  local backup="$3"
+
+  ensure_parent "$target"
+
+  if [[ -f "$target" && ! -L "$target" ]] && cmp -s "$rendered_path" "$target"; then
+    return
+  fi
+
+  if [[ -e "$target" || -L "$target" ]]; then
+    ensure_parent "$backup"
+    run mv "$target" "$backup"
+    printf 'backed up: %s -> %s\n' "$target" "$backup"
+  fi
+
+  run cp "$rendered_path" "$target"
+  printf 'installed: %s\n' "$target"
+}
+
+link_managed_path() {
+  local source="$1"
+  local target="$2"
+
+  if [[ ! -e "$source" ]]; then
+    printf 'error: managed source does not exist: %s\n' "$source" >&2
+    exit 1
+  fi
+
+  local relative="${target#"$codex_home"/}"
+  local backup="$backup_root/$relative"
+  if [[ "$target" != "$codex_home/"* ]]; then
+    relative="${target#"$agents_home"/}"
+    backup="$backup_root/agents/$relative"
+  fi
+
+  link_path "$source" "$target" "$backup"
+}
+
+link_agent_command() {
+  local source="$1"
+  local target="$2"
+
+  if [[ -L "$target" ]]; then
+    local resolved_source
+    local resolved_target
+    resolved_source="$(resolve_path "$source")"
+    resolved_target="$(resolve_path "$target")"
+    if [[ "$resolved_source" != "$resolved_target" ]]; then
+      run rm -- "$target"
+    fi
+  fi
+
+  link_path "$source" "$target" "$backup_root/bin/$(basename "$target")"
 
   case ":$PATH:" in
   *":$(dirname "$target"):"*) ;;
@@ -195,6 +243,8 @@ link_agent_command() {
   esac
 }
 
+# Appends a `[projects."<path>"]` trust entry to $config_file, unless one
+# for that exact path already exists.
 append_trusted_project() {
   local config_file="$1"
   local project_path="$2"
@@ -218,6 +268,134 @@ append_trusted_project() {
   printf '\n%s\ntrust_level = "trusted"\n' "$table_header" >>"$config_file"
 }
 
+ensure_trusted_project() {
+  local config_file="$1"
+  local table_header="$2"
+
+  mkdir -p "$(dirname "$config_file")"
+  if [[ -f "$config_file" ]] && grep -Fqx "$table_header" "$config_file"; then
+    return 1
+  fi
+
+  printf '\n%s\ntrust_level = "trusted"\n' "$table_header" >>"$config_file"
+  return 0
+}
+
+resolve_opencode_bin() {
+  if command -v opencode >/dev/null 2>&1; then
+    command -v opencode
+    return
+  fi
+
+  local fallback="$HOME/.opencode/bin/opencode"
+  if [[ -x "$fallback" ]]; then
+    printf '%s\n' "$fallback"
+    return
+  fi
+
+  return 1
+}
+
+run_agent() {
+  local provider="codex"
+  local args=()
+
+  if [[ "${1:-}" == "--trust" ]]; then
+    if [[ $# -ne 1 ]]; then
+      printf 'usage: %s [--trust]\n' "$invoked_name" >&2
+      exit 2
+    fi
+
+    local codex_home="${CODEX_HOME:-$HOME/.codex}"
+    local user_config_file="$codex_home/config.toml"
+    local local_config_file="${GETKAN_AI_LOCAL_PROJECTS_FILE:-$repo_root/agent-config/projects.toml}"
+    local current_directory="$(pwd -P)"
+    local escaped_directory="${current_directory//\\/\\\\}"
+    escaped_directory="${escaped_directory//\"/\\\"}"
+    local table_header="[projects.\"$escaped_directory\"]"
+    local user_status='already trusted'
+    local local_status='already trusted'
+
+    if ensure_trusted_project "$user_config_file" "$table_header"; then
+      user_status='trusted'
+    fi
+    if ensure_trusted_project "$local_config_file" "$table_header"; then
+      local_status='trusted'
+    fi
+
+    printf '%s in %s\n' "$user_status" "$user_config_file"
+    printf '%s in %s\n' "$local_status" "$local_config_file"
+    printf 'project: %s\n' "$current_directory"
+    return 0
+  fi
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -p | --provider)
+        if [[ $# -lt 2 ]]; then
+          printf 'error: %s requires a value\n' "$1" >&2
+          exit 2
+        fi
+        provider="$2"
+        shift 2
+        ;;
+      -p=* | --provider=*)
+        provider="${1#*=}"
+        shift
+        ;;
+      *)
+        args+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  case "$provider" in
+    codex | opencode) ;;
+    *)
+      printf 'error: unsupported provider: %s (expected codex or opencode)\n' "$provider" >&2
+      exit 2
+      ;;
+  esac
+
+  env_file="$repo_root/.env"
+  if [[ ! -f "$env_file" ]]; then
+    printf 'error: create %s from .env.example first\n' "$env_file" >&2
+    exit 1
+  fi
+
+  set -a
+  # shellcheck disable=SC1090
+  source "$env_file"
+  set +a
+
+  if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
+    printf 'error: OPENROUTER_API_KEY is empty in %s\n' "$env_file" >&2
+    exit 1
+  fi
+
+  case "$provider" in
+    codex)
+      exec codex "${args[@]}"
+      ;;
+    opencode)
+      local opencode_bin
+      opencode_bin="$(resolve_opencode_bin)" || {
+        printf 'error: opencode not found on PATH or at %s\n' "$HOME/.opencode/bin/opencode" >&2
+        printf 'note: open a new shell to pick up the PATH change from its installer, or add %s to PATH\n' "$HOME/.opencode/bin/opencode" >&2
+        exit 1
+      }
+      exec "$opencode_bin" "${args[@]}"
+      ;;
+  esac
+}
+
+# Carries forward machine-local state from an existing ~/.codex/config.toml
+# that this installer does not manage: any `notify` entry (moved to just
+# before the first table so it stays valid TOML), and whole
+# marketplaces/plugins/notice/hooks.state/mcp_servers.node_repl/
+# shell_environment_policy.set tables. Without this, re-rendering the
+# config would silently drop that state.
 append_preserved_config_sections() {
   local existing_config="$1"
   local config_file="$2"
@@ -273,6 +451,10 @@ append_preserved_config_sections() {
   fi
 }
 
+# Renders the managed ~/.codex/config.toml: the shared base config plus a
+# trusted-project entry for ~/github and every Git worktree beneath it,
+# any machine-local trust overlay, and state preserved by
+# append_preserved_config_sections.
 render_managed_config() {
   local git_marker
   local project_path
@@ -304,6 +486,9 @@ render_managed_config() {
   append_preserved_config_sections "$codex_home/config.toml" "$rendered_config"
 }
 
+# Parses agent-config/plugins.toml's restricted [[marketplaces]]/[[plugins]]
+# format (not general TOML) and prints one `marketplace\t...` or
+# `plugin\t...` record per line for sync_plugins to act on.
 parse_plugin_manifest() {
   [[ -f "$plugin_manifest" ]] || return 0
 
@@ -386,6 +571,8 @@ parse_plugin_manifest() {
   ' "$plugin_manifest"
 }
 
+# Adds every declared marketplace and plugin via Codex's own CLI. Additive
+# only: marketplaces or plugins not declared in the manifest are left alone.
 sync_plugins() {
   local manifest_records
   local record_type
@@ -423,24 +610,7 @@ sync_plugins() {
 
 install_managed_config() {
   local target="$1"
-
-  ensure_parent "$target"
-
-  if [[ -f "$target" && ! -L "$target" ]] && cmp -s "$rendered_config" "$target"; then
-    return
-  fi
-
-  if [[ -e "$target" || -L "$target" ]]; then
-    local relative="${target#"$codex_home"/}"
-    local backup="$backup_root/$relative"
-
-    ensure_parent "$backup"
-    run mv "$target" "$backup"
-    printf 'backed up: %s -> %s\n' "$target" "$backup"
-  fi
-
-  run cp "$rendered_config" "$target"
-  printf 'installed: %s\n' "$target"
+  install_rendered_file "$rendered_config" "$target" "$backup_root/${target#"$codex_home"/}"
 }
 
 render_vscode_agent() {
@@ -462,87 +632,189 @@ render_vscode_control_agent() {
 
 install_vscode_agent() {
   local target="$1"
-
-  ensure_parent "$target"
-
-  if [[ -f "$target" && ! -L "$target" ]] && cmp -s "$rendered_vscode_agent" "$target"; then
-    return
-  fi
-
-  if [[ -e "$target" || -L "$target" ]]; then
-    local backup="$backup_root/copilot/agents/$(basename "$target")"
-
-    ensure_parent "$backup"
-    run mv "$target" "$backup"
-    printf 'backed up: %s -> %s\n' "$target" "$backup"
-  fi
-
-  run cp "$rendered_vscode_agent" "$target"
-  printf 'installed: %s\n' "$target"
+  install_rendered_file "$rendered_vscode_agent" "$target" "$backup_root/copilot/agents/$(basename "$target")"
 }
 
 install_vscode_control_agent() {
   local target="$1"
+  install_rendered_file "$rendered_vscode_control_agent" "$target" "$backup_root/copilot/agents/$(basename "$target")"
+}
 
-  ensure_parent "$target"
+# Drops a skill file's leading `---`-delimited YAML front matter, leaving
+# only its Markdown body (used to reuse a skill's body as a subagent's
+# prompt, under different client-specific front matter).
+strip_front_matter() {
+  awk '
+    NR==1 && $0=="---" { infm=1; next }
+    infm && $0=="---" { infm=0; next }
+    infm { next }
+    { print }
+  ' "$1"
+}
 
-  if [[ -f "$target" && ! -L "$target" ]] && cmp -s "$rendered_vscode_control_agent" "$target"; then
-    return
-  fi
+# Reads a skill file's `description:` front-matter value.
+subagent_description() {
+  awk '
+    NR == 1 && $0 == "---" { in_frontmatter = 1; next }
+    in_frontmatter && $0 == "---" { exit }
+    in_frontmatter && /^description:[[:space:]]*/ {
+      value = $0
+      sub(/^description:[[:space:]]*/, "", value)
+      printf "%s", value
+      collecting = 1
+      next
+    }
+    in_frontmatter && collecting && /^[[:space:]]+/ {
+      continuation = $0
+      sub(/^[[:space:]]+/, "", continuation)
+      printf " %s", continuation
+      next
+    }
+    in_frontmatter && collecting { exit }
+    END {
+      if (collecting) printf "\n"
+    }
+  ' "$1"
+}
 
-  if [[ -e "$target" || -L "$target" ]]; then
-    local backup="$backup_root/copilot/agents/$(basename "$target")"
+# Reads a top-level string field (e.g. "mode") from a subagent config JSON
+# file. Only handles this repository's flat, self-authored config shape,
+# not arbitrary JSON.
+subagent_config_field() {
+  local file="$1"
+  local field="$2"
 
-    ensure_parent "$backup"
-    run mv "$target" "$backup"
-    printf 'backed up: %s -> %s\n' "$target" "$backup"
-  fi
+  sed -n "s/.*\"$field\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" "$file" | sed -n '1p'
+}
 
-  run cp "$rendered_vscode_control_agent" "$target"
-  printf 'installed: %s\n' "$target"
+# Reads a top-level JSON array of plain strings (e.g. "copilotTools") from a
+# subagent config file, printing one element per line, regardless of
+# whether the array is on one line or pretty-printed across several.
+subagent_config_array() {
+  local file="$1"
+  local field="$2"
+
+  awk -v field="$field" '
+    capture {
+      buf = buf "\n" $0
+      if ($0 ~ /\]/) { capture = 0; print buf; buf = "" }
+      next
+    }
+    index($0, "\"" field "\"") > 0 {
+      buf = $0
+      if ($0 ~ /\]/) { print buf } else { capture = 1 }
+    }
+  ' "$file" | grep -o '"[^"]*"' | sed 's/"//g' | tail -n +2
+}
+
+# Joins a subagent config's copilotTools array into the comma-separated
+# form the VS Code custom-agent `tools:` front matter expects.
+subagent_copilot_tools_csv() {
+  local file="$1"
+  local tools_csv=""
+  local tool
+
+  while IFS= read -r tool; do
+    [[ -n "$tool" ]] || continue
+    if [[ -n "$tools_csv" ]]; then
+      tools_csv+=", "
+    fi
+    tools_csv+="$tool"
+  done < <(subagent_config_array "$file" copilotTools)
+
+  printf '%s' "$tools_csv"
+}
+
+# Turns a subagent config's opencodeDeniedTools array into OpenCode's YAML
+# `tools:` permission block, denying each named tool.
+subagent_opencode_tools_yaml() {
+  local file="$1"
+  local tools_yaml=""
+  local tool
+
+  while IFS= read -r tool; do
+    [[ -n "$tool" ]] || continue
+    if [[ -n "$tools_yaml" ]]; then
+      tools_yaml+=$'\n'
+    fi
+    tools_yaml+="  $tool: false"
+  done < <(subagent_config_array "$file" opencodeDeniedTools)
+
+  printf '%s' "$tools_yaml"
+}
+
+# Renders a VS Code custom-agent file for one subagent: client-specific
+# front matter (name, tools, invocability) followed by the skill's body.
+render_subagent_copilot_agent() {
+  local name="$1"
+  local tools_csv="$2"
+  local source_skill="$3"
+  local description
+  description="$(subagent_description "$source_skill")"
+
+  rendered_subagent="$(mktemp "${TMPDIR:-/tmp}/getkan-ai-subagent.XXXXXX")"
+  {
+    printf -- '---\ndescription: "%s"\nname: "%s"\ntools: [%s]\nuser-invocable: true\n---\n\n' \
+      "$description" "$name" "$tools_csv"
+    strip_front_matter "$source_skill"
+  } >"$rendered_subagent"
+}
+
+install_copilot_subagent() {
+  local target="$1"
+  install_rendered_file "$rendered_subagent" "$target" "$backup_root/copilot/agents/$(basename "$target")"
+  rm -f -- "$rendered_subagent"
+}
+
+# Renders an OpenCode agent file for one subagent: front matter with mode
+# and any tool denials, followed by the skill's body.
+render_subagent_opencode_agent() {
+  local name="$1"
+  local mode="$2"
+  local tools_yaml="$3"
+  local source_skill="$4"
+  local description
+  description="$(subagent_description "$source_skill")"
+
+  rendered_subagent="$(mktemp "${TMPDIR:-/tmp}/getkan-ai-subagent.XXXXXX")"
+  {
+    printf -- '---\ndescription: "%s"\nmode: %s\n' "$description" "$mode"
+    if [[ -n "$tools_yaml" ]]; then
+      printf 'tools:\n%s\n' "$tools_yaml"
+    fi
+    printf -- '---\n\n'
+    strip_front_matter "$source_skill"
+  } >"$rendered_subagent"
+}
+
+install_opencode_agent() {
+  local target="$1"
+  install_rendered_file "$rendered_subagent" "$target" "$backup_root/opencode/${target#"$opencode_home"/}"
+  rm -f -- "$rendered_subagent"
 }
 
 link_copilot_path() {
   local source="$1"
   local target="$2"
-
-  ensure_parent "$target"
-  if [[ -L "$target" ]]; then
-    local resolved_source
-    local resolved_target=""
-    local resolve_status=0
-
-    resolved_source="$(resolve_path "$source")" || return 1
-    if resolved_target="$(resolve_path "$target")"; then
-      resolve_status=0
-    else
-      resolve_status=$?
-    fi
-
-    return
-  fi
-
-  if [[ -e "$target" || -L "$target" ]]; then
-    local backup="$backup_root/copilot/${target#"$copilot_home"/}"
-    ensure_parent "$backup"
-    run mv "$target" "$backup"
-    printf 'backed up: %s -> %s\n' "$target" "$backup"
-  fi
-
-  run ln -s "$source" "$target"
-  printf 'linked: %s -> %s\n' "$target" "$source"
+  link_path "$source" "$target" "$backup_root/copilot/${target#"$copilot_home"/}"
 }
+
+link_opencode_path() {
+  local source="$1"
+  local target="$2"
+  link_path "$source" "$target" "$backup_root/opencode/${target#"$opencode_home"/}"
+}
+
+if [[ "$invoked_name" == agent ]]; then
+  run_agent "$@"
+  exit 0
+fi
 
 render_managed_config
 link_managed_path "$shared_config_home/AGENTS.md" "$codex_home/AGENTS.md"
 install_managed_config "$codex_home/config.toml"
 sync_plugins
 link_managed_path "$shared_config_home/rules" "$codex_home/rules"
-
-for profile in "$shared_config_home"/*.config.toml; do
-  [[ -f "$profile" ]] || continue
-  link_managed_path "$profile" "$codex_home/$(basename "$profile")"
-done
 
 for skill_dir in "$repo_root"/.agents/skills/*; do
   [[ -d "$skill_dir" ]] || continue
@@ -559,9 +831,23 @@ for skill_dir in "$repo_root"/.agents/skills/*; do
   link_copilot_path "$skill_dir" "$copilot_skills_home/$(basename "$skill_dir")"
 done
 
-link_agent_command "$repo_root/scripts/openrouter.sh" "$bin_home/agent"
-link_agent_command "$repo_root/scripts/control-ai-hook.sh" "$bin_home/control-ai-hook"
-link_agent_command "$repo_root/scripts/getkan-ai-hook.sh" "$bin_home/getkan-ai-hook"
+link_opencode_path "$shared_config_home/opencode.config.json" "$opencode_home/opencode.json"
+link_opencode_path "$shared_config_home/opencode.cli.json" "$opencode_home/cli.json"
+
+for subagent in plan build reviewer; do
+  source_skill="$repo_root/.agents/skills/$subagent/SKILL.md"
+  subagent_config="$shared_config_home/subagents/$subagent.config.json"
+  [[ -f "$source_skill" && -f "$subagent_config" ]] || continue
+
+  render_subagent_copilot_agent "$subagent" "$(subagent_copilot_tools_csv "$subagent_config")" "$source_skill"
+  install_copilot_subagent "$copilot_agents_home/$subagent.agent.md"
+
+  render_subagent_opencode_agent "$subagent" "$(subagent_config_field "$subagent_config" mode)" \
+    "$(subagent_opencode_tools_yaml "$subagent_config")" "$source_skill"
+  install_opencode_agent "$opencode_home/agent/$subagent.md"
+done
+
+link_agent_command "$repo_root/scripts/install.sh" "$bin_home/agent"
 
 if "$dry_run"; then
   printf 'dry run complete\n'

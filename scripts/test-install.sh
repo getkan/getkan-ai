@@ -10,6 +10,7 @@ test_copilot_home="$task_test_root/copilot"
 test_copilot_agents_home="$test_copilot_home/agents"
 test_copilot_skills_home="$test_copilot_home/skills"
 test_bin_home="$task_test_root/bin"
+test_opencode_home="$task_test_root/opencode"
 test_codex_bin="$task_test_root/codex-bin"
 test_plugin_manifest="$task_test_root/plugins.toml"
 test_codex_log="$task_test_root/codex.log"
@@ -91,6 +92,7 @@ EOF
 
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
+  OPENCODE_HOME="$test_opencode_home" \
   GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" >/dev/null
 
@@ -119,7 +121,12 @@ for preserved_line in \
     fail "generated config dropped machine-local state: $preserved_line"
 done
 assert_link "$test_codex_home/rules" "$repo_root/agent-config/rules"
-assert_link "$test_codex_home/openrouter.config.toml" "$repo_root/agent-config/openrouter.config.toml"
+grep -Fqx 'model_provider = "openrouter"' "$test_codex_home/config.toml" ||
+  fail "generated config must use OpenRouter"
+grep -Fqx 'env_key = "OPENROUTER_API_KEY"' "$test_codex_home/config.toml" ||
+  fail "generated config must define the OpenRouter environment key"
+[[ ! -e "$test_codex_home/openrouter.config.toml" ]] ||
+  fail "obsolete OpenRouter profile must not be installed"
 
 for skill_dir in "$repo_root"/.agents/skills/*; do
   [[ -d "$skill_dir" ]] || continue
@@ -127,7 +134,18 @@ for skill_dir in "$repo_root"/.agents/skills/*; do
   assert_link "$test_copilot_skills_home/$(basename "$skill_dir")" "$skill_dir"
 done
 
-assert_link "$test_bin_home/agent" "$repo_root/scripts/openrouter.sh"
+assert_link "$test_bin_home/agent" "$repo_root/scripts/install.sh"
+assert_link "$test_opencode_home/opencode.json" "$repo_root/agent-config/opencode.config.json"
+assert_link "$test_opencode_home/cli.json" "$repo_root/agent-config/opencode.cli.json"
+
+"$test_bin_home/agent" --provider bogus >/dev/null 2>"$task_test_root/provider-error.log" &&
+  fail "agent --provider accepted an unsupported provider"
+grep -Fq 'unsupported provider: bogus' "$task_test_root/provider-error.log" ||
+  fail "agent --provider did not report the unsupported provider"
+"$test_bin_home/agent" --provider >/dev/null 2>"$task_test_root/provider-error.log" &&
+  fail "agent --provider accepted a missing value"
+grep -Fq 'requires a value' "$task_test_root/provider-error.log" ||
+  fail "agent --provider did not report the missing value"
 
 mkdir -p "$test_trust_directory"
 mkdir -p "$test_trust_codex_home"
@@ -166,6 +184,7 @@ chmod +x "$test_codex_bin/codex"
 
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
+  OPENCODE_HOME="$test_opencode_home" \
   GETKAN_AI_PLUGIN_MANIFEST="$test_plugin_manifest" TEST_CODEX_LOG="$test_codex_log" \
   GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   PATH="$test_codex_bin:$PATH" "$repo_root/scripts/install.sh" >/dev/null
@@ -176,6 +195,7 @@ grep -Fqx 'plugin add example-plugin@example-marketplace' "$test_codex_log" ||
 
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
+  OPENCODE_HOME="$test_opencode_home" \
   GETKAN_AI_PLUGIN_MANIFEST="$test_plugin_manifest" TEST_CODEX_LOG="$test_codex_log" \
   GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   PATH="$test_codex_bin:$PATH" "$repo_root/scripts/install.sh" >/dev/null
@@ -199,6 +219,44 @@ grep -Fqx 'name: "control-ai"' "$installed_control_agent" ||
   fail "generated control agent is missing the control-ai name"
 grep -Fq 'Token usage:' "$installed_control_agent" ||
   fail "generated control agent does not contain token usage logging instructions"
+
+installed_plan_agent="$test_copilot_agents_home/plan.agent.md"
+[[ -f "$installed_plan_agent" && ! -L "$installed_plan_agent" ]] ||
+  fail "expected generated plan subagent file: $installed_plan_agent"
+grep -Fqx 'name: "plan"' "$installed_plan_agent" ||
+  fail "generated plan subagent is missing the plan name"
+grep -Fqx 'tools: [read, search, execute, todo]' "$installed_plan_agent" ||
+  fail "generated plan subagent has unexpected tools"
+grep -Fq 'without editing any file. Use when the user wants a plan' "$installed_plan_agent" ||
+  fail "generated plan subagent truncated its multiline description"
+grep -Fq 'Never edit, create, move, or delete a file.' "$installed_plan_agent" ||
+  fail "generated plan subagent does not mirror .agents/skills/plan/SKILL.md"
+
+installed_build_agent="$test_copilot_agents_home/build.agent.md"
+grep -Fqx 'tools: [read, edit, search, execute, todo, agent]' "$installed_build_agent" ||
+  fail "generated build subagent has unexpected tools"
+
+installed_reviewer_agent="$test_copilot_agents_home/reviewer.agent.md"
+grep -Fqx 'tools: [read, search, execute, todo]' "$installed_reviewer_agent" ||
+  fail "generated reviewer subagent has unexpected tools"
+
+installed_plan_opencode_agent="$test_opencode_home/agent/plan.md"
+[[ -f "$installed_plan_opencode_agent" && ! -L "$installed_plan_opencode_agent" ]] ||
+  fail "expected generated OpenCode plan agent file: $installed_plan_opencode_agent"
+grep -Fqx 'mode: all' "$installed_plan_opencode_agent" ||
+  fail "generated OpenCode plan agent is missing mode: all"
+grep -Fqx '  edit: false' "$installed_plan_opencode_agent" ||
+  fail "generated OpenCode plan agent does not disable edit"
+grep -Fqx '  task: false' "$installed_plan_opencode_agent" ||
+  fail "generated OpenCode plan agent does not disable task"
+
+installed_build_opencode_agent="$test_opencode_home/agent/build.md"
+[[ -f "$installed_build_opencode_agent" && ! -L "$installed_build_opencode_agent" ]] ||
+  fail "expected generated OpenCode build agent file: $installed_build_opencode_agent"
+grep -Fqx 'mode: all' "$installed_build_opencode_agent" ||
+  fail "generated OpenCode build agent is missing mode: all"
+grep -Fq '^tools:' "$installed_build_opencode_agent" &&
+  fail "generated OpenCode build agent should not restrict tools"
 
 shopt -s nullglob
 vscode_agent_backups=("$test_codex_home"/backups/getkan-ai-*/copilot/agents/getkan-ai.agent.md)
@@ -230,6 +288,7 @@ raw_instruction_target="$(readlink "$test_codex_home/AGENTS.md")"
 
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
+  OPENCODE_HOME="$test_opencode_home" \
   GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" >/dev/null
 [[ "$(readlink "$test_codex_home/AGENTS.md")" == "$raw_instruction_target" ]] ||
@@ -246,7 +305,17 @@ instruction_backups=("$test_codex_home"/backups/getkan-ai-*/AGENTS.md)
 shopt -u nullglob
 [[ ${#instruction_backups[@]} -eq 1 ]] ||
   fail "idempotent install created another AGENTS.md backup"
-assert_link "$test_bin_home/agent" "$repo_root/scripts/openrouter.sh"
+assert_link "$test_bin_home/agent" "$repo_root/scripts/install.sh"
+assert_link "$test_opencode_home/opencode.json" "$repo_root/agent-config/opencode.config.json"
+assert_link "$test_opencode_home/cli.json" "$repo_root/agent-config/opencode.cli.json"
+shopt -s nullglob
+plan_agent_backups=("$test_codex_home"/backups/getkan-ai-*/copilot/agents/plan.agent.md)
+plan_opencode_backups=("$test_codex_home"/backups/getkan-ai-*/opencode/agent/plan.md)
+shopt -u nullglob
+[[ ${#plan_agent_backups[@]} -eq 0 ]] ||
+  fail "idempotent install created an unexpected plan.agent.md backup"
+[[ ${#plan_opencode_backups[@]} -eq 0 ]] ||
+  fail "idempotent install created an unexpected OpenCode plan.md backup"
 shopt -s nullglob
 config_backups=("$test_codex_home"/backups/getkan-ai-*/config.toml)
 shopt -u nullglob
@@ -277,8 +346,8 @@ cycle_fixture_dir="$task_test_root/cycle fixtures"
 mkdir -p "$cycle_fixture_dir"
 ln -s "cycle-b" "$cycle_fixture_dir/cycle-a"
 ln -s "cycle-a" "$cycle_fixture_dir/cycle-b"
-rm -- "$test_codex_home/openrouter.config.toml"
-ln -s "../cycle fixtures/cycle-a" "$test_codex_home/openrouter.config.toml"
+rm -- "$test_codex_home/AGENTS.md"
+ln -s "../cycle fixtures/cycle-a" "$test_codex_home/AGENTS.md"
 cycle_error_log="$task_test_root/cycle-error.log"
 
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \

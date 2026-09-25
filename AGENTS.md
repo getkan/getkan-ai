@@ -63,6 +63,10 @@ Read only the documents needed for the task:
 - `docs/AI_LAYOUT.md` for agent discovery and installation boundaries.
 - `docs/SKILLS.md` when creating or changing skills.
 - `docs/WORKFLOW.md` when changing the repository development workflow.
+- `docs/CLIENT_REFERENCE.md` for Codex, OpenCode, and VS Code Copilot
+  command, file, and configuration reference.
+- `docs/CLIENT_WORKFLOW.md` for the day-to-day `plan`/`build`/`reviewer`
+  subagent workflow in each client.
 - `docs/LOCAL_MODEL_INTEGRATION.md` when working on local model token
   optimization.
 

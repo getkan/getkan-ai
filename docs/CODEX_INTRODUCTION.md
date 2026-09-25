@@ -48,13 +48,10 @@ An installed user-level `AGENTS.md` provides a baseline. A repository may also p
 
 Do not place secrets, authentication data, session state, or machine-only runtime settings in the portable source configuration. The installer preserves selected existing runtime sections while generating the managed configuration.
 
-### Profiles
+### Provider configuration
 
-A profile is an optional configuration layer. It can select a different provider, model, or behavior without changing ordinary Codex sessions:
-
-```bash
-codex --profile <profile-name>
-```
+The base Codex configuration selects the provider and model for ordinary
+sessions. This repository configures OpenRouter there by default.
 
 Keep provider keys in the environment or a local secret store. Never commit credentials or place them in a tracked configuration file.
 

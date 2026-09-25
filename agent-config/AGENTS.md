@@ -72,6 +72,7 @@
 
 ## Task interpretation
 
+- When a user's prompt ends with `?`, use the `plan` subagent and do not implement changes.
 - Match the requested action mode. `Inspect`, `review`, `diagnose`, and `report`
   authorize investigation and reporting, not implementation. `Fix`, `update`,
   `address`, and `implement` authorize completing the requested change and
@@ -112,7 +113,7 @@ number of tokens used.
 
 Use this exact format: "Request made to getkan-ai agent. Token usage: [number of tokens used]."
 
-Store the log in `./logs/agent_getkan_usage.log` in the getkan-ai repository. Create the file and its parent directory if they do not exist. Always append new entries; never overwrite existing entries.
+Store the log in `/home/$USER/logs/agent_getkan_usage.log` in the getkan-ai repository. Create the file and its parent directory if they do not exist. Always append new entries; never overwrite existing entries.
 
 Create the file and its parent directory if they do not exist. Always append
 new entries; never overwrite existing entries.

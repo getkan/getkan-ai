@@ -1,0 +1,12 @@
+{
+    "mode": "all",
+    "copilotTools": [
+        "read",
+        "edit",
+        "search",
+        "execute",
+        "todo",
+        "agent"
+    ],
+    "opencodeDeniedTools": []
+}

@@ -42,6 +42,7 @@ __pycache__/
 venv/
 dist/
 build/
+!/.agents/skills/build/
 *.egg-info/
 
 # Node and frontend

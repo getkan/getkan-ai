@@ -1,9 +1,14 @@
 # getkan-ai
 
-Shared agent base for GitHub Copilot in VS Code and the OpenRouter-backed Codex
-client. It keeps portable instructions, configuration, rules, reusable skills,
-and reference documentation in one repository, then installs each item into
-the client-specific location that consumes it.
+Shared agent base for GitHub Copilot in VS Code, an OpenRouter-backed Codex
+client, and an OpenRouter-backed OpenCode client. It keeps portable
+instructions, configuration, rules, reusable skills, and reference
+documentation in one repository, then installs each item into the
+client-specific location that consumes it. See
+[docs/CLIENT_REFERENCE.md](docs/CLIENT_REFERENCE.md) for the full command
+and configuration reference across all three clients, and
+[docs/CLIENT_WORKFLOW.md](docs/CLIENT_WORKFLOW.md) for how to use the
+shared `plan`/`build`/`reviewer` subagents in each one.
 
 ## Install
 
@@ -20,12 +25,15 @@ plugins not declared in the manifest are preserved.
 
 The installer manages:
 
-- `agent-config/` into Codex configuration and Copilot instruction targets
+- `agent-config/` into Codex, OpenCode, and Copilot instruction targets
 - declared Codex marketplaces and plugins from `agent-config/plugins.toml`
 - `.agents/skills/` into both `~/.agents/skills/` and `~/.copilot/skills/`
 - the `getkan-ai` Copilot custom agent into `~/.copilot/agents/`
+- the `plan`, `build`, and `reviewer` subagents into `~/.copilot/agents/`
+  and `$OPENCODE_HOME/agent/`
 - a globally available `agent` command in `~/.local/bin/` that launches
-  `scripts/openrouter.sh`
+  `scripts/install.sh`, defaulting to Codex or selecting OpenCode with
+  `-p opencode`
 
 ## Codex plugins
 
@@ -62,12 +70,9 @@ from GitHub Copilot. A few things worth knowing before you dive in:
   `~/.agents/skills`. The installer in this repository populates those files
   for you; see [docs/AI_LAYOUT.md](docs/AI_LAYOUT.md) for exactly what goes
   where and why.
-- By default Codex talks to OpenAI's own models. This repository adds an
-  optional `openrouter` profile so you can point Codex at OpenRouter's models
-  instead; see "Codex-OpenRouter Use" below.
-- A "profile" is a named layer of settings (`~/.codex/<profile>.config.toml`)
-  you opt into with `codex --profile <name>`; it overrides `config.toml` only
-  for that run.
+- This repository configures Codex to use OpenRouter by default. The provider
+  and model settings live in `~/.codex/config.toml`; see "Codex-OpenRouter
+  Use" below.
 - `AGENTS.md` files are how you give Codex durable project instructions. This
   repository's maintenance instructions are in [AGENTS.md](AGENTS.md),
   while the portable client instructions live in `agent-config/AGENTS.md`.
@@ -77,15 +82,15 @@ from GitHub Copilot. A few things worth knowing before you dive in:
 ## Codex-OpenRouter Use
 
 For the OpenRouter-backed Codex client, copy `.env.example` to `.env`, add the
-key, and launch through the repository wrapper:
+key, and install the repository configuration:
 
 ```bash
 cp .env.example .env
-./scripts/openrouter.sh
+./scripts/install.sh
 ```
 
-Or, after installing, use the globally available `agent` command from any
-directory (ensure `~/.local/bin` is on `PATH`):
+Then use the globally available `agent` command from any directory (ensure
+`~/.local/bin` is on `PATH`):
 
 ```bash
 agent
@@ -99,6 +104,20 @@ agent --trust
 
 The wrapper reads only `OPENROUTER_API_KEY` from `.env`; the file is ignored by
 Git and must never be committed.
+
+## OpenCode
+
+[OpenCode](https://opencode.ai) is a separate terminal coding-agent CLI,
+installed with its own installer (`curl -fsSL https://opencode.ai/install |
+bash`), not by this repository. This repository configures it to use the
+same OpenRouter credential as Codex:
+
+```bash
+agent -p opencode
+```
+
+See [docs/CLIENT_REFERENCE.md](docs/CLIENT_REFERENCE.md) for OpenCode's
+configuration file locations and commands.
 
 ## Copilot in VS Code
 

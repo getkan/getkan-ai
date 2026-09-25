@@ -34,12 +34,17 @@ required_files=(
   "docs/TASKS.md"
   "agent-config/AGENTS.md"
   "agent-config/config.toml"
-  "agent-config/openrouter.config.toml"
+  "agent-config/opencode.config.json"
+  "agent-config/opencode.cli.json"
+  "agent-config/subagents/plan.config.json"
+  "agent-config/subagents/build.config.json"
+  "agent-config/subagents/reviewer.config.json"
   "agent-config/rules/default.rules"
   "docs/AI_LAYOUT.md"
+  "docs/CLIENT_REFERENCE.md"
+  "docs/CLIENT_WORKFLOW.md"
   ".github/copilot-instructions.md"
   ".env.example"
-  "scripts/openrouter.sh"
   "docs/SKILLS.md"
   "docs/WORKFLOW.md"
   "docs/LOCAL_MODEL_INTEGRATION.md"
@@ -118,9 +123,18 @@ PY
     "$repo_root/agent-config/plugins.toml" ||
     fail "agent-config/plugins.toml is invalid TOML"
 
-  for profile_file in "$repo_root"/agent-config/*.config.toml; do
-    "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text()); raise SystemExit("projects" in config)' \
-      "$profile_file" || fail "${profile_file#"$repo_root"/} must not contain machine-specific project trust"
+  "$python_cmd" -c 'import json, pathlib, sys; json.loads(pathlib.Path(sys.argv[1]).read_text())' \
+    "$repo_root/agent-config/opencode.config.json" ||
+    fail "agent-config/opencode.config.json is invalid JSON"
+
+  "$python_cmd" -c 'import json, pathlib, sys; json.loads(pathlib.Path(sys.argv[1]).read_text())' \
+    "$repo_root/agent-config/opencode.cli.json" ||
+    fail "agent-config/opencode.cli.json is invalid JSON"
+
+  for subagent_config in "$repo_root"/agent-config/subagents/*.config.json; do
+    "$python_cmd" -c 'import json, pathlib, sys; json.loads(pathlib.Path(sys.argv[1]).read_text())' \
+      "$subagent_config" ||
+      fail "invalid JSON in ${subagent_config#"$repo_root"/}"
   done
 
   "$python_cmd" - "$repo_root/AGENTS.md" "$repo_root/agent-config/AGENTS.md" <<'PY' ||

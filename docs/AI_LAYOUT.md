@@ -44,7 +44,7 @@ This repository manages only:
 - reusable skills
 - declared Codex marketplaces and plugins
 
-The installer links instructions, rules, the OpenRouter profile, and skills into
+The installer links instructions, rules, and skills into
 their documented locations while preserving runtime state. It renders
 `~/.codex/config.toml` as a regular file so it can add machine-specific trust
 entries for `~/github` and every Git worktree discovered beneath it. Existing
@@ -71,18 +71,58 @@ run, the installer adds the current user's `~/github` path plus every Git
 worktree found recursively below it to the generated config. Rerun the
 installer after adding repositories to refresh those entries.
 
-## OpenRouter profile
+## OpenRouter configuration
 
-Codex profile files live directly under `CODEX_HOME` and use the name
-`<profile>.config.toml`.
+The base `config.toml` contains the OpenRouter Responses API endpoint and
+default model. `.env` stores the ignored local `OPENROUTER_API_KEY` value, and
+The installed `agent` command, implemented by `scripts/install.sh`, loads it
+before launch.
 
-- `openrouter.config.toml` for the OpenRouter Responses API endpoint.
-- `.env` for the ignored local `OPENROUTER_API_KEY` value.
-- `scripts/openrouter.sh`, or the installed `agent` command, to load `.env`
-  and launch.
+## OpenCode provider
 
-The profile layers over `config.toml` only when selected with `--profile`, so
-OpenRouter settings do not affect ordinary Codex sessions.
+The `agent` command also supports OpenCode as an alternate provider:
+
+- `agent --provider opencode` (or `-p opencode`) loads `.env` and execs
+  `opencode` instead of `codex`. `agent` with no
+  `-p`/`--provider` flag still defaults to Codex.
+- `agent-config/opencode.config.json` sets the default OpenRouter-backed
+  model. The installer links it to `$OPENCODE_HOME/opencode.json`, defaulting
+  `OPENCODE_HOME` to `~/.config/opencode`.
+- OpenCode reads the same `OPENROUTER_API_KEY` environment variable that
+  `.env` provides to Codex; no separate credential file is managed by this
+  repository.
+
+## Subagents: plan, build, reviewer
+
+The `plan`, `build`, and `reviewer` skills under `.agents/skills/` also
+render as named custom agents. Each subagent's client mode and permitted or
+denied tools live in a human-readable config file,
+`agent-config/subagents/<name>.config.json`, instead of being hardcoded in
+`scripts/install.sh`:
+
+```json
+{
+  "mode": "subagent",
+  "copilotTools": ["read", "search", "execute", "todo"],
+  "opencodeDeniedTools": ["edit", "task"]
+}
+```
+
+- Target: `~/.copilot/agents/<name>.agent.md`, generated with a `tools` list
+  taken from `copilotTools`. `plan` and `reviewer` exclude `edit`, enforcing
+  the read-only boundary described in each skill.
+- Target: `$OPENCODE_HOME/agent/<name>.md` (default
+  `~/.config/opencode/agent/`), generated with the config's `mode` and a
+  `tools:` block that denies every name listed in `opencodeDeniedTools`.
+  `task` denies calling other subagents. Confirmed with `opencode agent list`
+  against the installed OpenCode 1.18.x binary: `plan` and `reviewer` show an
+  `edit`/`*` and `task`/`*` deny rule and `build` does not.
+- Codex has no native per-agent tool-permission mechanism. Codex sessions
+  discover these as ordinary skills (`.agents/skills/plan`,
+  `.agents/skills/build`, `.agents/skills/reviewer`) and rely on the skill's
+  own instructions to honor the same no-edit boundary.
+- Rerun the installer after changing a skill body or a subagent config file
+  to refresh the rendered agent files.
 
 ## Shared Copilot installation
 
