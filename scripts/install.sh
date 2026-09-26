@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 # Installs this repository's shared instructions, configuration, rules,
 # skills, and subagents into Codex, GitHub Copilot, and OpenCode's user
-# directories. When invoked through the installed `agent` symlink, it also
-# launches Codex or OpenCode. See docs/AI_LAYOUT.md for what goes where and
-# docs/CLIENT_REFERENCE.md for how to use the result.
+# directories. It also configures Zsh to load the local OpenRouter key when
+# Codex or OpenCode is invoked. See docs/AI_LAYOUT.md for details.
 set -euo pipefail
 
-invoked_name="$(basename "${BASH_SOURCE[0]}")"
 script_path="${BASH_SOURCE[0]}"
 while [[ -L "$script_path" ]]; do
   link_target="$(readlink "$script_path")"
@@ -19,20 +17,18 @@ done
 
 dry_run=false
 
-if [[ "$invoked_name" != agent ]]; then
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --dry-run)
-        dry_run=true
-        ;;
-      *)
-        printf 'usage: %s [--dry-run]\n' "$0" >&2
-        exit 2
-        ;;
-    esac
-    shift
-  done
-fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run)
+      dry_run=true
+      ;;
+    *)
+      printf 'usage: %s [--dry-run]\n' "$0" >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
 
 repo_root="$(cd "$(dirname "$script_path")/.." && pwd)"
 codex_home="${CODEX_HOME:-$HOME/.codex}"
@@ -49,12 +45,14 @@ rendered_config=""
 rendered_vscode_agent=""
 rendered_vscode_control_agent=""
 rendered_subagent=""
+rendered_zshrc=""
 
 copilot_home="${COPILOT_HOME:-$HOME/.copilot}"
 copilot_agents_home="$copilot_home/agents"
 copilot_skills_home="$copilot_home/skills"
-bin_home="${AGENT_BIN_HOME:-$HOME/.local/bin}"
 opencode_home="${OPENCODE_HOME:-$HOME/.config/opencode}"
+zshrc_file="${ZDOTDIR:-$HOME}/.zshrc"
+agent_bin_home="${AGENT_BIN_HOME:-$HOME/.local/bin}"
 
 run() {
   if "$dry_run"; then
@@ -80,6 +78,9 @@ cleanup() {
   fi
   if [[ -n "$rendered_subagent" && -f "$rendered_subagent" ]]; then
     rm -f -- "$rendered_subagent"
+  fi
+  if [[ -n "$rendered_zshrc" && -f "$rendered_zshrc" ]]; then
+    rm -f -- "$rendered_zshrc"
   fi
 }
 trap cleanup EXIT
@@ -202,6 +203,97 @@ install_rendered_file() {
   printf 'installed: %s\n' "$target"
 }
 
+render_zshrc() {
+  local begin_marker="# >>> getkan-ai managed OpenRouter functions >>>"
+  local end_marker="# <<< getkan-ai managed OpenRouter functions <<<"
+  local env_file="$repo_root/.env"
+
+  rendered_zshrc="$(mktemp "${TMPDIR:-/tmp}/getkan-ai-zshrc.XXXXXX")"
+  if [[ -f "$zshrc_file" ]]; then
+    awk -v begin="$begin_marker" -v end="$end_marker" '
+      $0 == begin {
+        if (inside) exit 2
+        inside = 1
+        next
+      }
+      inside && $0 == end { inside = 0; next }
+      inside { next }
+      $0 == "alias opencode=\047agent -p opencode\047" ||
+        $0 == "alias opencode=\042agent -p opencode\042" { next }
+      { print }
+      END { if (inside) exit 2 }
+    ' "$zshrc_file" >"$rendered_zshrc" || {
+      printf 'error: malformed managed OpenRouter block in %s\n' "$zshrc_file" >&2
+      return 1
+    }
+  else
+    : >"$rendered_zshrc"
+  fi
+
+  {
+    printf '\n%s\n' "$begin_marker"
+    printf 'unalias opencode 2>/dev/null || true\n'
+    printf 'function _getkan_load_openrouter_env() {\n'
+    printf '  local env_file=%q\n' "$env_file"
+    cat <<'EOF'
+  if [[ ! -f "$env_file" ]]; then
+    print -u2 "error: create $env_file from .env.example first"
+    return 1
+  fi
+
+  setopt localoptions allexport
+  if ! source "$env_file"; then
+    print -u2 "error: could not load $env_file"
+    return 1
+  fi
+  if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
+    print -u2 "error: OPENROUTER_API_KEY is empty in $env_file"
+    return 1
+  fi
+}
+
+function codex() {
+  (
+    _getkan_load_openrouter_env || exit $?
+    command codex "$@"
+  )
+}
+
+function opencode() {
+  (
+    _getkan_load_openrouter_env || exit $?
+    command opencode "$@"
+  )
+}
+EOF
+    printf '%s\n' "$end_marker"
+  } >>"$rendered_zshrc"
+}
+
+remove_managed_agent_link() {
+  local target="$agent_bin_home/agent"
+  local resolved_target
+
+  [[ -L "$target" ]] || return 0
+  resolved_target="$(resolve_path "$target")" || return 1
+  case "$resolved_target" in
+    "$repo_root/scripts/install.sh"|"$repo_root/scripts/agent.sh"|"$repo_root/scripts/openrouter.sh")
+      run rm -- "$target"
+      printf 'removed obsolete agent launcher: %s\n' "$target"
+      ;;
+  esac
+}
+
+install_zshrc() {
+  local target="$zshrc_file"
+
+  if [[ -L "$target" ]]; then
+    target="$(resolve_path "$target")" || return 1
+  fi
+
+  install_rendered_file "$rendered_zshrc" "$target" "$backup_root/shell/.zshrc"
+}
+
 link_managed_path() {
   local source="$1"
   local target="$2"
@@ -219,28 +311,6 @@ link_managed_path() {
   fi
 
   link_path "$source" "$target" "$backup"
-}
-
-link_agent_command() {
-  local source="$1"
-  local target="$2"
-
-  if [[ -L "$target" ]]; then
-    local resolved_source
-    local resolved_target
-    resolved_source="$(resolve_path "$source")"
-    resolved_target="$(resolve_path "$target")"
-    if [[ "$resolved_source" != "$resolved_target" ]]; then
-      run rm -- "$target"
-    fi
-  fi
-
-  link_path "$source" "$target" "$backup_root/bin/$(basename "$target")"
-
-  case ":$PATH:" in
-  *":$(dirname "$target"):"*) ;;
-  *) printf 'note: add %s to PATH to use the agent command\n' "$(dirname "$target")" ;;
-  esac
 }
 
 # Appends a `[projects."<path>"]` trust entry to $config_file, unless one
@@ -266,128 +336,6 @@ append_trusted_project() {
   fi
 
   printf '\n%s\ntrust_level = "trusted"\n' "$table_header" >>"$config_file"
-}
-
-ensure_trusted_project() {
-  local config_file="$1"
-  local table_header="$2"
-
-  mkdir -p "$(dirname "$config_file")"
-  if [[ -f "$config_file" ]] && grep -Fqx "$table_header" "$config_file"; then
-    return 1
-  fi
-
-  printf '\n%s\ntrust_level = "trusted"\n' "$table_header" >>"$config_file"
-  return 0
-}
-
-resolve_opencode_bin() {
-  if command -v opencode >/dev/null 2>&1; then
-    command -v opencode
-    return
-  fi
-
-  local fallback="$HOME/.opencode/bin/opencode"
-  if [[ -x "$fallback" ]]; then
-    printf '%s\n' "$fallback"
-    return
-  fi
-
-  return 1
-}
-
-run_agent() {
-  local provider="codex"
-  local args=()
-
-  if [[ "${1:-}" == "--trust" ]]; then
-    if [[ $# -ne 1 ]]; then
-      printf 'usage: %s [--trust]\n' "$invoked_name" >&2
-      exit 2
-    fi
-
-    local codex_home="${CODEX_HOME:-$HOME/.codex}"
-    local user_config_file="$codex_home/config.toml"
-    local local_config_file="${GETKAN_AI_LOCAL_PROJECTS_FILE:-$repo_root/agent-config/projects.toml}"
-    local current_directory="$(pwd -P)"
-    local escaped_directory="${current_directory//\\/\\\\}"
-    escaped_directory="${escaped_directory//\"/\\\"}"
-    local table_header="[projects.\"$escaped_directory\"]"
-    local user_status='already trusted'
-    local local_status='already trusted'
-
-    if ensure_trusted_project "$user_config_file" "$table_header"; then
-      user_status='trusted'
-    fi
-    if ensure_trusted_project "$local_config_file" "$table_header"; then
-      local_status='trusted'
-    fi
-
-    printf '%s in %s\n' "$user_status" "$user_config_file"
-    printf '%s in %s\n' "$local_status" "$local_config_file"
-    printf 'project: %s\n' "$current_directory"
-    return 0
-  fi
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      -p | --provider)
-        if [[ $# -lt 2 ]]; then
-          printf 'error: %s requires a value\n' "$1" >&2
-          exit 2
-        fi
-        provider="$2"
-        shift 2
-        ;;
-      -p=* | --provider=*)
-        provider="${1#*=}"
-        shift
-        ;;
-      *)
-        args+=("$1")
-        shift
-        ;;
-    esac
-  done
-
-  case "$provider" in
-    codex | opencode) ;;
-    *)
-      printf 'error: unsupported provider: %s (expected codex or opencode)\n' "$provider" >&2
-      exit 2
-      ;;
-  esac
-
-  env_file="$repo_root/.env"
-  if [[ ! -f "$env_file" ]]; then
-    printf 'error: create %s from .env.example first\n' "$env_file" >&2
-    exit 1
-  fi
-
-  set -a
-  # shellcheck disable=SC1090
-  source "$env_file"
-  set +a
-
-  if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
-    printf 'error: OPENROUTER_API_KEY is empty in %s\n' "$env_file" >&2
-    exit 1
-  fi
-
-  case "$provider" in
-    codex)
-      exec codex "${args[@]}"
-      ;;
-    opencode)
-      local opencode_bin
-      opencode_bin="$(resolve_opencode_bin)" || {
-        printf 'error: opencode not found on PATH or at %s\n' "$HOME/.opencode/bin/opencode" >&2
-        printf 'note: open a new shell to pick up the PATH change from its installer, or add %s to PATH\n' "$HOME/.opencode/bin/opencode" >&2
-        exit 1
-      }
-      exec "$opencode_bin" "${args[@]}"
-      ;;
-  esac
 }
 
 # Carries forward machine-local state from an existing ~/.codex/config.toml
@@ -805,11 +753,6 @@ link_opencode_path() {
   link_path "$source" "$target" "$backup_root/opencode/${target#"$opencode_home"/}"
 }
 
-if [[ "$invoked_name" == agent ]]; then
-  run_agent "$@"
-  exit 0
-fi
-
 render_managed_config
 link_managed_path "$shared_config_home/AGENTS.md" "$codex_home/AGENTS.md"
 install_managed_config "$codex_home/config.toml"
@@ -847,7 +790,9 @@ for subagent in plan build reviewer; do
   install_opencode_agent "$opencode_home/agent/$subagent.md"
 done
 
-link_agent_command "$repo_root/scripts/install.sh" "$bin_home/agent"
+render_zshrc
+install_zshrc
+remove_managed_agent_link
 
 if "$dry_run"; then
   printf 'dry run complete\n'

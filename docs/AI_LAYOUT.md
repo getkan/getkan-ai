@@ -74,23 +74,18 @@ installer after adding repositories to refresh those entries.
 ## OpenRouter configuration
 
 The base `config.toml` contains the OpenRouter Responses API endpoint and
-default model. `.env` stores the ignored local `OPENROUTER_API_KEY` value, and
-The installed `agent` command, implemented by `scripts/install.sh`, loads it
-before launch.
+default model. `.env` stores the ignored local `OPENROUTER_API_KEY` value.
+The installer adds managed Zsh functions to `${ZDOTDIR:-$HOME}/.zshrc`; they
+load `.env` when `codex` or `opencode` is invoked. Reload that file or open a
+new shell after installation.
 
 ## OpenCode provider
 
-The `agent` command also supports OpenCode as an alternate provider:
-
-- `agent --provider opencode` (or `-p opencode`) loads `.env` and execs
-  `opencode` instead of `codex`. `agent` with no
-  `-p`/`--provider` flag still defaults to Codex.
 - `agent-config/opencode.config.json` sets the default OpenRouter-backed
   model. The installer links it to `$OPENCODE_HOME/opencode.json`, defaulting
   `OPENCODE_HOME` to `~/.config/opencode`.
-- OpenCode reads the same `OPENROUTER_API_KEY` environment variable that
-  `.env` provides to Codex; no separate credential file is managed by this
-  repository.
+- The managed `opencode` Zsh function loads the same environment variable
+  from `.env`; no separate credential file is managed by this repository.
 
 ## Subagents: plan, build, reviewer
 
@@ -115,7 +110,7 @@ denied tools live in a human-readable config file,
   `~/.config/opencode/agent/`), generated with the config's `mode` and a
   `tools:` block that denies every name listed in `opencodeDeniedTools`.
   `task` denies calling other subagents. Confirmed with `opencode agent list`
-  against the installed OpenCode 1.18.x binary: `plan` and `reviewer` show an
+  against OpenCode v2: `plan` and `reviewer` show an
   `edit`/`*` and `task`/`*` deny rule and `build` does not.
 - Codex has no native per-agent tool-permission mechanism. Codex sessions
   discover these as ordinary skills (`.agents/skills/plan`,

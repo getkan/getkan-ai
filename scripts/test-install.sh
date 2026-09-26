@@ -12,11 +12,14 @@ test_copilot_skills_home="$test_copilot_home/skills"
 test_bin_home="$task_test_root/bin"
 test_opencode_home="$task_test_root/opencode"
 test_codex_bin="$task_test_root/codex-bin"
+test_zsh_bin="$task_test_root/zsh-bin"
+test_zdotdir="$task_test_root/zdotdir"
+test_zshrc_target="$task_test_root/dotfiles/.zshrc"
+test_env_file="$task_test_root/fixture.env"
+test_zshrc_for_run="$task_test_root/test.zshrc"
 test_plugin_manifest="$task_test_root/plugins.toml"
 test_codex_log="$task_test_root/codex.log"
 test_github_repo="$test_user_home/github/nested/project"
-test_trust_directory="$test_user_home/Projects/example"
-test_trust_codex_home="$task_test_root/trust-codex"
 test_local_projects_file="$task_test_root/projects.toml"
 python_cmd=""
 python_seen=0
@@ -61,6 +64,11 @@ mkdir -p "$test_codex_home"
 mkdir -p "$test_github_repo/.git"
 mkdir -p "$test_copilot_agents_home"
 mkdir -p "$test_copilot_skills_home"
+mkdir -p "$test_zdotdir" "$test_bin_home" "$(dirname "$test_zshrc_target")"
+printf 'export EXISTING_ZSH_SETTING=preserved\nalias opencode=\047agent -p opencode\047\n' >"$test_zshrc_target"
+ln -s "$test_zshrc_target" "$test_zdotdir/.zshrc"
+ln -s "$repo_root/scripts/install.sh" "$test_bin_home/agent"
+export ZDOTDIR="$test_zdotdir"
 printf 'original global instructions\n' >"$test_codex_home/AGENTS.md"
 printf 'original copilot agent\n' >"$test_copilot_agents_home/getkan-ai.agent.md"
 cat >"$test_codex_home/config.toml" <<'EOF'
@@ -134,35 +142,46 @@ for skill_dir in "$repo_root"/.agents/skills/*; do
   assert_link "$test_copilot_skills_home/$(basename "$skill_dir")" "$skill_dir"
 done
 
-assert_link "$test_bin_home/agent" "$repo_root/scripts/install.sh"
+[[ ! -e "$test_bin_home/agent" && ! -L "$test_bin_home/agent" ]] ||
+  fail "installer did not remove its old agent launcher"
+grep -Fqx 'export EXISTING_ZSH_SETTING=preserved' "$test_zdotdir/.zshrc" ||
+  fail "installer did not preserve existing Zsh configuration"
+[[ -L "$test_zdotdir/.zshrc" && "$(readlink "$test_zdotdir/.zshrc")" == "$test_zshrc_target" ]] ||
+  fail "installer replaced the user's Zsh configuration symlink"
+! grep -Fq "alias opencode='agent -p opencode'" "$test_zdotdir/.zshrc" ||
+  fail "installer retained the obsolete OpenCode alias"
+[[ "$(grep -Fxc '# >>> getkan-ai managed OpenRouter functions >>>' "$test_zdotdir/.zshrc")" -eq 1 ]] ||
+  fail "installer did not add exactly one managed Zsh block"
 assert_link "$test_opencode_home/opencode.json" "$repo_root/agent-config/opencode.config.json"
 assert_link "$test_opencode_home/cli.json" "$repo_root/agent-config/opencode.cli.json"
 
-"$test_bin_home/agent" --provider bogus >/dev/null 2>"$task_test_root/provider-error.log" &&
-  fail "agent --provider accepted an unsupported provider"
-grep -Fq 'unsupported provider: bogus' "$task_test_root/provider-error.log" ||
-  fail "agent --provider did not report the unsupported provider"
-"$test_bin_home/agent" --provider >/dev/null 2>"$task_test_root/provider-error.log" &&
-  fail "agent --provider accepted a missing value"
-grep -Fq 'requires a value' "$task_test_root/provider-error.log" ||
-  fail "agent --provider did not report the missing value"
-
-mkdir -p "$test_trust_directory"
-mkdir -p "$test_trust_codex_home"
-(cd "$test_trust_directory" && \
-  HOME="$test_user_home" CODEX_HOME="$test_trust_codex_home" \
-  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
-  "$test_bin_home/agent" --trust) || fail "agent --trust failed"
-grep -Fqx "[projects.\"$test_trust_directory\"]" "$test_trust_codex_home/config.toml" ||
-  fail "agent --trust did not trust the current directory"
-grep -Fqx "[projects.\"$test_trust_directory\"]" "$test_local_projects_file" ||
-  fail "agent --trust did not persist the current directory in the local projects file"
-(cd "$test_trust_directory" && \
-  HOME="$test_user_home" CODEX_HOME="$test_trust_codex_home" \
-  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
-  "$test_bin_home/agent" --trust) || fail "repeated agent --trust failed"
-[[ "$(grep -Fxc "[projects.\"$test_trust_directory\"]" "$test_trust_codex_home/config.toml")" -eq 1 ]] ||
-  fail "repeated agent --trust duplicated the project entry"
+if command -v zsh >/dev/null 2>&1; then
+  mkdir -p "$test_zsh_bin"
+  printf 'OPENROUTER_API_KEY=synthetic-test-key\n' >"$test_env_file"
+  sed "s|$repo_root/.env|$test_env_file|g" "$test_zdotdir/.zshrc" >"$test_zshrc_for_run"
+  cat >"$test_zsh_bin/codex" <<'EOF'
+#!/usr/bin/env bash
+[[ "${OPENROUTER_API_KEY:-}" == synthetic-test-key ]] || exit 3
+printf '%s\n' "$@" >>"$TEST_CODEX_LOG"
+EOF
+  cat >"$test_zsh_bin/opencode" <<'EOF'
+#!/usr/bin/env bash
+[[ "${OPENROUTER_API_KEY:-}" == synthetic-test-key ]] || exit 3
+printf '%s\n' "$@" >>"$TEST_OPENCODE_LOG"
+EOF
+  chmod +x "$test_zsh_bin/codex" "$test_zsh_bin/opencode"
+  TEST_CODEX_LOG="$task_test_root/zsh-codex.log" \
+    TEST_OPENCODE_LOG="$task_test_root/zsh-opencode.log" \
+    PATH="$test_zsh_bin:$PATH" \
+    zsh -f -c 'alias opencode="echo stale alias"; source "$1"; [[ "$(whence -w opencode)" == "opencode: function" ]] || exit 5; codex --model test/model "prompt with spaces"; [[ -z "${OPENROUTER_API_KEY:-}" ]] || exit 4; opencode run "message with spaces"; [[ -z "${OPENROUTER_API_KEY:-}" ]]' \
+      test-shell "$test_zshrc_for_run" || fail "Zsh client functions did not load the synthetic key"
+  grep -Fqx -- '--model' "$task_test_root/zsh-codex.log" ||
+    fail "Codex function did not forward arguments"
+  grep -Fqx 'prompt with spaces' "$task_test_root/zsh-codex.log" ||
+    fail "Codex function did not preserve spaced arguments"
+  grep -Fqx 'message with spaces' "$task_test_root/zsh-opencode.log" ||
+    fail "OpenCode function did not preserve spaced arguments"
+fi
 
 cat >"$test_plugin_manifest" <<'EOF'
 [[marketplaces]]
@@ -201,6 +220,17 @@ HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_h
   PATH="$test_codex_bin:$PATH" "$repo_root/scripts/install.sh" >/dev/null
 [[ "$(wc -l <"$test_codex_log")" -eq 4 ]] ||
   fail "repeated install did not reconcile every managed plugin entry"
+[[ "$(grep -Fxc '# >>> getkan-ai managed OpenRouter functions >>>' "$test_zdotdir/.zshrc")" -eq 1 ]] ||
+  fail "repeated install duplicated the managed Zsh block"
+
+dry_user_home="$task_test_root/dry-run-home"
+dry_zdotdir="$task_test_root/dry-run-zdotdir"
+HOME="$dry_user_home" CODEX_HOME="$task_test_root/dry-run-codex" \
+  AGENTS_HOME="$task_test_root/dry-run-agents" ZDOTDIR="$dry_zdotdir" \
+  GETKAN_AI_LOCAL_PROJECTS_FILE="$task_test_root/dry-run-projects.toml" \
+  "$repo_root/scripts/install.sh" --dry-run >"$task_test_root/dry-run.log"
+[[ ! -e "$dry_zdotdir/.zshrc" ]] ||
+  fail "dry run wrote the managed Zsh configuration"
 
 installed_vscode_agent="$test_copilot_agents_home/getkan-ai.agent.md"
 [[ -f "$installed_vscode_agent" && ! -L "$installed_vscode_agent" ]] ||
@@ -276,8 +306,8 @@ shopt -u nullglob
 shopt -s nullglob
 config_backups=("$test_codex_home"/backups/getkan-ai-*/config.toml)
 shopt -u nullglob
-[[ ${#config_backups[@]} -eq 2 ]] ||
-  fail "expected two config.toml backups after local trust updates, found ${#config_backups[@]}"
+[[ ${#config_backups[@]} -eq 1 ]] ||
+  fail "expected one config.toml backup from initial installation, found ${#config_backups[@]}"
 
 link_fixture_dir="$task_test_root/link fixtures"
 mkdir -p "$link_fixture_dir"
@@ -305,7 +335,8 @@ instruction_backups=("$test_codex_home"/backups/getkan-ai-*/AGENTS.md)
 shopt -u nullglob
 [[ ${#instruction_backups[@]} -eq 1 ]] ||
   fail "idempotent install created another AGENTS.md backup"
-assert_link "$test_bin_home/agent" "$repo_root/scripts/install.sh"
+[[ ! -e "$test_bin_home/agent" && ! -L "$test_bin_home/agent" ]] ||
+  fail "repeated install recreated the removed agent launcher"
 assert_link "$test_opencode_home/opencode.json" "$repo_root/agent-config/opencode.config.json"
 assert_link "$test_opencode_home/cli.json" "$repo_root/agent-config/opencode.cli.json"
 shopt -s nullglob
@@ -319,7 +350,7 @@ shopt -u nullglob
 shopt -s nullglob
 config_backups=("$test_codex_home"/backups/getkan-ai-*/config.toml)
 shopt -u nullglob
-[[ ${#config_backups[@]} -eq 2 ]] ||
+[[ ${#config_backups[@]} -eq 1 ]] ||
   fail "idempotent install created another config.toml backup"
 for preserved_line in \
   'notify = [' \

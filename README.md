@@ -5,10 +5,9 @@ client, and an OpenRouter-backed OpenCode client. It keeps portable
 instructions, configuration, rules, reusable skills, and reference
 documentation in one repository, then installs each item into the
 client-specific location that consumes it. See
-[docs/CLIENT_REFERENCE.md](docs/CLIENT_REFERENCE.md) for the full command
-and configuration reference across all three clients, and
-[docs/CLIENT_WORKFLOW.md](docs/CLIENT_WORKFLOW.md) for how to use the
-shared `plan`/`build`/`reviewer` subagents in each one.
+[docs/AI_LAYOUT.md](docs/AI_LAYOUT.md) for client discovery and configuration,
+and [docs/WORKFLOW.md](docs/WORKFLOW.md) for the repository contribution
+workflow.
 
 ## Install
 
@@ -31,9 +30,8 @@ The installer manages:
 - the `getkan-ai` Copilot custom agent into `~/.copilot/agents/`
 - the `plan`, `build`, and `reviewer` subagents into `~/.copilot/agents/`
   and `$OPENCODE_HOME/agent/`
-- a globally available `agent` command in `~/.local/bin/` that launches
-  `scripts/install.sh`, defaulting to Codex or selecting OpenCode with
-  `-p opencode`
+- managed Zsh functions in `${ZDOTDIR:-$HOME}/.zshrc` that load the local
+  OpenRouter key when `codex` or `opencode` is run
 
 ## Codex plugins
 
@@ -89,21 +87,19 @@ cp .env.example .env
 ./scripts/install.sh
 ```
 
-Then use the globally available `agent` command from any directory (ensure
-`~/.local/bin` is on `PATH`):
+After installation, reload Zsh configuration and use Codex directly:
 
 ```bash
-agent
+source "${ZDOTDIR:-$HOME}/.zshrc"
+codex
 ```
 
-Trust the current project directory persistently with:
+The managed `codex` and `opencode` Zsh functions source this repository's
+`.env` when invoked, passing the key to the client process without exporting it
+into the parent shell. Codex trust for `~/github` worktrees is added by the
+installer; other directories can be trusted through Codex when prompted.
 
-```bash
-agent --trust
-```
-
-The wrapper reads only `OPENROUTER_API_KEY` from `.env`; the file is ignored by
-Git and must never be committed.
+The `.env` file is ignored by Git and must never be committed.
 
 ## OpenCode
 
@@ -113,11 +109,11 @@ bash`), not by this repository. This repository configures it to use the
 same OpenRouter credential as Codex:
 
 ```bash
-agent -p opencode
+opencode
 ```
 
-See [docs/CLIENT_REFERENCE.md](docs/CLIENT_REFERENCE.md) for OpenCode's
-configuration file locations and commands.
+See [docs/AI_LAYOUT.md](docs/AI_LAYOUT.md) for OpenCode's configuration
+locations.
 
 ## Copilot in VS Code
 
@@ -163,8 +159,8 @@ dependency review for pull requests.
 ## Repository layout
 
 - `AGENTS.md`: instructions for maintaining this repository
-- `docs/SPEC.md`, `docs/ROADMAP.md`, and `docs/TASKS.md`: requirements,
-  phase order, and validated task status
+- `docs/SPEC.md`, `docs/ROADMAP.md`, and `docs/TASKS.md`: local-only planning
+  documents, ignored by Git
 - `.agents/skills/`: reusable skills
 - `.env.example`: template for the ignored OpenRouter credential file
 - `agent-config/`: shared Codex and Copilot source configuration, instructions,
