@@ -55,10 +55,12 @@ clear `name` and `description`.
 
 - `ai-project-manager`
 - `build`
+- `create-skill`
 - `css`
 - `deep`
 - `js`
 - `learn`
+- `md-to-pdf`
 - `plan`
 - `playwrite`
 - `python`
@@ -66,6 +68,7 @@ clear `name` and `description`.
 - `reformat`
 - `reviewer`
 - `svelte`
+- `take-note`
 - `tailwind`
 - `ts`
 - `vue`
@@ -76,6 +79,10 @@ when this list and the skill directories drift apart.
 
 The `reformat` skill normalizes pasted or dictated text into clean Markdown
 without changing its words, punctuation, links, code, or meaning.
+
+The `md-to-pdf` skill uses its bundled Pandoc/Chromium converter to export one
+Markdown file or combine ordered Markdown chapters into a printable PDF,
+resolving each input's relative images and preserving rendered content.
 
 The `watch` skill runs a local development watch command in a dedicated
 background terminal, restarts it up to three times on process failure, and
