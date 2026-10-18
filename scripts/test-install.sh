@@ -133,6 +133,10 @@ grep -Fqx 'model_provider = "openrouter"' "$test_codex_home/config.toml" ||
   fail "generated config must use OpenRouter"
 grep -Fqx 'env_key = "OPENROUTER_API_KEY"' "$test_codex_home/config.toml" ||
   fail "generated config must define the OpenRouter environment key"
+  grep -Fqx 'approval_policy = "on-request"' "$test_codex_home/config.toml" ||
+    fail "generated config must require approval by default"
+  grep -Fqx 'sandbox_mode = "workspace-write"' "$test_codex_home/config.toml" ||
+    fail "generated config must use workspace-write sandboxing by default"
 [[ ! -e "$test_codex_home/openrouter.config.toml" ]] ||
   fail "obsolete OpenRouter profile must not be installed"
 
@@ -255,7 +259,7 @@ installed_plan_agent="$test_copilot_agents_home/plan.agent.md"
   fail "expected generated plan subagent file: $installed_plan_agent"
 grep -Fqx 'name: "plan"' "$installed_plan_agent" ||
   fail "generated plan subagent is missing the plan name"
-grep -Fqx 'tools: [read, search, execute, todo]' "$installed_plan_agent" ||
+grep -Fqx 'tools: [read, search, todo]' "$installed_plan_agent" ||
   fail "generated plan subagent has unexpected tools"
 grep -Fq 'without editing any file. Use when the user wants a plan' "$installed_plan_agent" ||
   fail "generated plan subagent truncated its multiline description"
@@ -267,7 +271,7 @@ grep -Fqx 'tools: [read, edit, search, execute, todo, agent]' "$installed_build_
   fail "generated build subagent has unexpected tools"
 
 installed_reviewer_agent="$test_copilot_agents_home/reviewer.agent.md"
-grep -Fqx 'tools: [read, search, execute, todo]' "$installed_reviewer_agent" ||
+grep -Fqx 'tools: [read, search, todo]' "$installed_reviewer_agent" ||
   fail "generated reviewer subagent has unexpected tools"
 
 installed_plan_opencode_agent="$test_opencode_home/agent/plan.md"
@@ -277,6 +281,10 @@ grep -Fqx 'mode: all' "$installed_plan_opencode_agent" ||
   fail "generated OpenCode plan agent is missing mode: all"
 grep -Fqx '  edit: false' "$installed_plan_opencode_agent" ||
   fail "generated OpenCode plan agent does not disable edit"
+for denied_tool in bash patch write; do
+  grep -Fqx "  $denied_tool: false" "$installed_plan_opencode_agent" ||
+    fail "generated OpenCode plan agent does not disable $denied_tool"
+done
 grep -Fqx '  task: false' "$installed_plan_opencode_agent" ||
   fail "generated OpenCode plan agent does not disable task"
 

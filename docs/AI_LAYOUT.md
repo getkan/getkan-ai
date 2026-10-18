@@ -104,14 +104,14 @@ denied tools live in a human-readable config file,
 ```
 
 - Target: `~/.copilot/agents/<name>.agent.md`, generated with a `tools` list
-  taken from `copilotTools`. `plan` and `reviewer` exclude `edit`, enforcing
-  the read-only boundary described in each skill.
+  taken from `copilotTools`. `plan` and `reviewer` exclude `edit` and
+  `execute`, enforcing the read-only boundary described in each skill.
 - Target: `$OPENCODE_HOME/agent/<name>.md` (default
   `~/.config/opencode/agent/`), generated with the config's `mode` and a
   `tools:` block that denies every name listed in `opencodeDeniedTools`.
-  `task` denies calling other subagents. Confirmed with `opencode agent list`
-  against OpenCode v2: `plan` and `reviewer` show an
-  `edit`/`*` and `task`/`*` deny rule and `build` does not.
+  `task` denies calling other subagents, while `bash`, `edit`, `patch`, and
+  `write` deny mutation-capable tools. Confirm with
+  `opencode debug agents` against the installed OpenCode version.
 - Codex has no native per-agent tool-permission mechanism. Codex sessions
   discover these as ordinary skills (`.agents/skills/plan`,
   `.agents/skills/build`, `.agents/skills/reviewer`) and rely on the skill's

@@ -3,11 +3,13 @@
     "copilotTools": [
         "read",
         "search",
-        "execute",
         "todo"
     ],
     "opencodeDeniedTools": [
         "edit",
+        "write",
+        "patch",
+        "bash",
         "task"
     ]
 }
