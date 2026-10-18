@@ -62,11 +62,9 @@ Read only the documents needed for the task:
 - `docs/TASKS.md` for the current phase, validation status, and remaining work, when present in the workspace.
 - `docs/AI_LAYOUT.md` for agent discovery and installation boundaries.
 - `docs/SKILLS.md` when creating or changing skills.
-- `docs/WORKFLOW.md` when changing the repository development workflow.
-- `docs/CLIENT_REFERENCE.md` for Codex, OpenCode, and VS Code Copilot
-  command, file, and configuration reference, when present in the workspace.
-- `docs/CLIENT_WORKFLOW.md` for the day-to-day `plan`/`build`/`reviewer`
-  subagent workflow in each client, when present in the workspace.
+- `docs/EDITOR_WORKFLOW.md` for the development lifecycle, Codex, OpenCode,
+  and VS Code Copilot client reference, the `plan`/`build`/`reviewer` loop,
+  the VS Code and Neovim/tmux editor workflow, and sample task workflows.
 - `docs/LOCAL_MODEL_INTEGRATION.md` when working on local model token
   optimization.
 

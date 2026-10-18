@@ -6,8 +6,8 @@ instructions, configuration, rules, reusable skills, and reference
 documentation in one repository, then installs each item into the
 client-specific location that consumes it. See
 [docs/AI_LAYOUT.md](docs/AI_LAYOUT.md) for client discovery and configuration,
-and [docs/WORKFLOW.md](docs/WORKFLOW.md) for the repository contribution
-workflow.
+and [docs/EDITOR_WORKFLOW.md](docs/EDITOR_WORKFLOW.md) for the development
+workflow and client reference.
 
 ## Install
 
@@ -145,7 +145,9 @@ Project-document templates live under
 `.agents/skills/ai-project-manager/assets/project-docs/`. Adapt them to the
 project instead of leaving placeholder requirements.
 
-See [docs/WORKFLOW.md](docs/WORKFLOW.md) for the complete lifecycle.
+See [docs/EDITOR_WORKFLOW.md](docs/EDITOR_WORKFLOW.md) for the complete
+lifecycle, client reference, a VS Code workflow, a staged move to Neovim with
+tmux, and sample task workflows.
 
 ## Validate
 
@@ -156,11 +158,14 @@ See [docs/WORKFLOW.md](docs/WORKFLOW.md) for the complete lifecycle.
 The validation includes an isolated Linux installer integration test and runs
 dependency review for pull requests.
 
+The planning and client workflow documents under `docs/` are optional local
+references and are not required for validation from a clean checkout.
+
 ## Repository layout
 
 - `AGENTS.md`: instructions for maintaining this repository
-- `docs/SPEC.md`, `docs/ROADMAP.md`, and `docs/TASKS.md`: local-only planning
-  documents, ignored by Git
+- `docs/SPEC.md`, `docs/ROADMAP.md`, and `docs/TASKS.md`: local planning
+  documents that are optional for validation
 - `.agents/skills/`: reusable skills
 - `.env.example`: template for the ignored OpenRouter credential file
 - `agent-config/`: shared Codex and Copilot source configuration, instructions,
@@ -171,6 +176,8 @@ dependency review for pull requests.
 See [docs/AI_LAYOUT.md](docs/AI_LAYOUT.md) for detailed discovery and
 configuration behavior.
 
-For background, see [docs/CODEX_INTRODUCTION.md](docs/CODEX_INTRODUCTION.md)
+For background, see [docs/CODEX_INTRODUCTION.md](docs/CODEX_INTRODUCTION.md),
+[docs/OPEN_AI_INTRODUCTION.md](docs/OPEN_AI_INTRODUCTION.md),
+[docs/COPILOT_INTRODUCTION.md](docs/COPILOT_INTRODUCTION.md),
 and [docs/AI_CODING_AGENTS.md](docs/AI_CODING_AGENTS.md). For reducing model
 usage and cost, see [docs/TOKEN_OPTIMIZATION.md](docs/TOKEN_OPTIMIZATION.md).

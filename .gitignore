@@ -63,9 +63,6 @@ target/
 .parcel-cache/
 .turbo/
 
-# Machine-local project trust overrides
-agent-config/projects.toml
-
 # Codex runtime state and credentials
 auth.json
 history.jsonl
@@ -78,4 +75,3 @@ archived_sessions/
 shell_snapshots/
 plugins/
 models_cache.json
-docs/
