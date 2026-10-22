@@ -172,6 +172,7 @@ EOF
 printf '%s\n' "$@" >>"$TEST_OPENCODE_LOG"
 EOF
   chmod +x "$test_zsh_bin/codex" "$test_zsh_bin/opencode"
+  # shellcheck disable=SC2016
   TEST_CODEX_LOG="$task_test_root/zsh-codex.log" \
     TEST_OPENCODE_LOG="$task_test_root/zsh-opencode.log" \
     PATH="$test_zsh_bin:$PATH" \
@@ -238,7 +239,7 @@ grep -Fqx 'name: "getkan-ai"' "$installed_vscode_agent" ||
   fail "generated VS Code agent is missing the getkan-ai name"
 grep -Fqx 'tools: [read, edit, search, execute, todo, agent]' "$installed_vscode_agent" ||
   fail "generated VS Code agent has unexpected tools"
-grep -Fq 'Use `rtk`' "$installed_vscode_agent" ||
+grep -Fq "Use \`rtk\`" "$installed_vscode_agent" ||
   fail "generated VS Code agent does not mirror agent-config/AGENTS.md"
 
 installed_control_agent="$test_copilot_agents_home/control-ai.agent.md"
