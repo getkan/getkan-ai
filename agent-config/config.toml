@@ -1,8 +1,16 @@
-approval_policy = "never"
+approval_policy = "on-request"
 model_reasoning_effort = "medium"
 plan_mode_reasoning_effort = "medium"
 model_verbosity = "low"
-sandbox_mode = "danger-full-access"
+sandbox_mode = "workspace-write"
+model = "moonshotai/kimi-k3"
+model_provider = "openrouter"
+
+[model_providers.openrouter]
+name = "OpenRouter"
+base_url = "https://openrouter.ai/api/v1"
+env_key = "OPENROUTER_API_KEY"
+wire_api = "responses"
 
 [features]
 fast_mode = true

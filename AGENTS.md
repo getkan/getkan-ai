@@ -57,12 +57,14 @@ portable client instructions shared by Codex and Copilot are stored in
 
 Read only the documents needed for the task:
 
-- `docs/SPEC.md` for product requirements, boundaries, and acceptance criteria.
-- `docs/ROADMAP.md` for ordered outcomes, risks, and phase exit criteria.
-- `docs/TASKS.md` for the current phase, validation status, and remaining work.
+- `docs/SPEC.md` for product requirements, boundaries, acceptance criteria, and resources for learning more about technologies utilized in the project, when present in the workspace.
+- `docs/ROADMAP.md` for ordered outcomes, risks, phase exit criteria, and a log of changes over time, when present in the workspace.
+- `docs/TASKS.md` for the current phase, validation status, and remaining work, when present in the workspace.
 - `docs/AI_LAYOUT.md` for agent discovery and installation boundaries.
 - `docs/SKILLS.md` when creating or changing skills.
-- `docs/WORKFLOW.md` when changing the repository development workflow.
+- `docs/EDITOR_WORKFLOW.md` for the development lifecycle, Codex, OpenCode,
+  and VS Code Copilot client reference, the `plan`/`build`/`reviewer` loop,
+  the VS Code and Neovim/tmux editor workflow, and sample task workflows.
 - `docs/LOCAL_MODEL_INTEGRATION.md` when working on local model token
   optimization.
 

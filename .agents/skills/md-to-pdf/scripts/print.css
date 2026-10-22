@@ -1,0 +1,79 @@
+@page {
+  size: Letter;
+  margin: 0.65in 0.65in 0.72in;
+  @bottom-right {
+    content: counter(page);
+    font: 9pt sans-serif;
+    color: #666;
+  }
+}
+
+body {
+  color: #171717;
+  font: 10pt/1.42 Arial, Helvetica, sans-serif;
+}
+
+#title-block-header {
+  min-height: 8.5in;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  break-after: page;
+}
+
+#title-block-header h1 {
+  font-size: 30pt;
+  line-height: 1.2;
+}
+
+.source-document {
+  break-before: page;
+}
+
+h1 { font-size: 22pt; }
+h2 { font-size: 16pt; }
+h3 { font-size: 12pt; }
+h1, h2, h3, h4 { break-after: avoid; }
+p, li { orphans: 3; widows: 3; }
+
+img {
+  display: block;
+  max-width: 100%;
+  max-height: 8.7in;
+  height: auto;
+  object-fit: contain;
+  margin: 0.12in auto;
+  break-inside: avoid;
+}
+
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 8pt/1.28 "DejaVu Sans Mono", monospace;
+  background: #f4f4f4;
+  padding: 0.1in;
+  border: 0.5pt solid #ddd;
+}
+
+code {
+  font: 0.88em "DejaVu Sans Mono", monospace;
+  overflow-wrap: anywhere;
+}
+
+table { border-collapse: collapse; width: 100%; font-size: 9pt; }
+thead { display: table-header-group; }
+th, td {
+  border: 0.5pt solid #999;
+  padding: 4pt;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+th { background: #eee; }
+a { color: #111; text-decoration: underline; }
+blockquote {
+  border-left: 2pt solid #999;
+  margin-left: 0;
+  padding-left: 0.15in;
+  color: #333;
+}

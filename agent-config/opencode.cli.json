@@ -1,0 +1,7 @@
+{
+    "keybinds": {
+        "agent.cycle": "tab",
+        "agent.cycle.reverse": "shift+tab",
+        "input.submit": "return"
+    }
+}
