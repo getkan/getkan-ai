@@ -6,9 +6,9 @@ and Codex, OpenAI's coding-agent CLI. This guide explains how those pieces fit
 together, how this repository connects to them, and how to get better results
 from OpenAI models.
 
-For the agent workflow itself (instructions, skills, rules, reviewing output),
-read [CODEX_INTRODUCTION.md](CODEX_INTRODUCTION.md). For the day-to-day
-workflow across clients, read [EDITOR_WORKFLOW.md](EDITOR_WORKFLOW.md).
+For Codex concepts, read [CODEX_INTRODUCTION.md](CODEX_INTRODUCTION.md). Use
+[EDITOR_WORKFLOW.md](EDITOR_WORKFLOW.md) for setup, the day-to-day workflow
+across clients, and operational review procedures.
 
 ## The OpenAI pieces
 
@@ -126,24 +126,15 @@ turn and dilute the rules that matter. Put detailed workflows in skills and
 reference documents, and load them only when needed. See
 [TOKEN_OPTIMIZATION.md](TOKEN_OPTIMIZATION.md).
 
-### Separate planning from editing
-
-Use `$plan` in a read-only sandbox for anything larger than a small fix, read
-the plan, and only then run `$build`. Correcting a plan is cheaper than
-reverting a diff.
-
 ### Start a new session for a new task
 
 Long sessions accumulate stale context. Start a fresh `codex` session when the
 task changes, and restate the goal rather than relying on earlier turns.
 
-### Always finish with the review gate
+### Follow the operational workflow
 
-```bash
-codex review --uncommitted
-```
-
-Verify each finding against the diff. A finding is a claim, not a fact.
+Use the [editor workflow](EDITOR_WORKFLOW.md) for planning, implementation,
+validation, and review procedures.
 
 ## Cost and usage
 

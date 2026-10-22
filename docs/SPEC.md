@@ -3,10 +3,10 @@
 ## Problem
 
 Agent installations mix portable configuration with credentials, sessions,
-caches, and other machine-local state. Codex and GitHub Copilot also use
-different discovery locations. This repository provides one shared agent base
-and installs adapters for both clients without replacing project-specific
-requirements.
+caches, and other machine-local state. Codex, GitHub Copilot, and OpenCode use
+different discovery and configuration models. This repository provides shared
+instructions and workflows with client-specific configuration and adapters,
+without replacing project-specific requirements.
 
 ## Users
 
@@ -20,8 +20,8 @@ repositories.
   reusable workflows from this repository.
 - Provide GitHub Copilot repository instructions for VS Code.
 - Install shared instructions and skills into the appropriate Codex and
-  Copilot user directories while keeping project documentation in the
-  repository.
+  Copilot user directories, and render selected workflows as OpenCode agents,
+  while keeping project documentation in the repository.
 - Install a Copilot custom agent named `getkan-ai` that answers setup,
   workflow, requirement, roadmap, and task-status questions from repository
   markdown files.
@@ -55,8 +55,12 @@ repositories.
 
 ## Architecture
 
-- `agent-config/` is the shared source for Codex and Copilot configuration,
-  instructions, and rules.
+- `agent-config/` contains portable instructions and rules shared by Codex
+  and Copilot, Codex configuration, OpenCode configuration, and client-specific
+  subagent settings.
+- `.agents/skills/` is the shared workflow source linked for Codex and Copilot;
+  the installer renders the `plan`, `build`, and `reviewer` skills as OpenCode
+  agents.
 - The installer renders `config.toml` with machine-specific exact trust entries
   while linking the other managed files.
 - The installer generates `~/.copilot/agents/getkan-ai.agent.md` from
@@ -100,8 +104,8 @@ repositories.
 - Managing credentials, plugin caches or authentication, sessions, or caches.
 - Routing GitHub Copilot requests through OpenRouter; these are separate
   services.
-- Providing one identical runtime for Codex and Copilot; each client retains
-  its own discovery and execution behavior.
+- Providing one identical runtime for Codex, Copilot, and OpenCode; each
+  client retains its own discovery and execution behavior.
 - Replacing project-specific instructions or requirements.
 - Installing Codex, GitHub Copilot, OpenCode, third-party review CLIs, or
   local model servers.

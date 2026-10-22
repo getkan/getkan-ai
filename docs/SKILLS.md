@@ -1,4 +1,4 @@
-# Shared skills for Codex and GitHub Copilot
+# Shared skills for Codex, GitHub Copilot, and OpenCode
 
 ## Purpose
 
@@ -24,8 +24,9 @@ repository/.agents/skills/<skill-name>/SKILL.md
 
 Codex scans repository skill directories from the working directory up to the
 repository root and uses `~/.agents/skills/` for user-wide skills. The
-installer links this repository's skills into both user locations so the same
-workflows are available to Codex and Copilot.
+installer links this repository's skills into the Codex and Copilot user
+locations. It renders the `plan`, `build`, and `reviewer` workflows as named
+OpenCode agents using their configured permissions.
 
 ## Required layout
 

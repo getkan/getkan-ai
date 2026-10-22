@@ -1,183 +1,52 @@
 # getkan-ai
 
-Shared agent base for GitHub Copilot in VS Code, an OpenRouter-backed Codex
-client, and an OpenRouter-backed OpenCode client. It keeps portable
-instructions, configuration, rules, reusable skills, and reference
-documentation in one repository, then installs each item into the
-client-specific location that consumes it. See
-[docs/AI_LAYOUT.md](docs/AI_LAYOUT.md) for client discovery and configuration,
-and [docs/EDITOR_WORKFLOW.md](docs/EDITOR_WORKFLOW.md) for the development
-workflow and client reference.
+Portable agent instructions and skills for GitHub Copilot in VS Code and
+OpenRouter-backed Codex, with OpenCode-specific configuration and agents.
+The installer adapts the shared workflow to each client's configuration and
+discovery model.
 
 ## Install
 
-Preview and install:
+For OpenRouter-backed Codex and OpenCode, create `.env` from the example and
+add your key. Then preview and install:
 
 ```bash
+cp .env.example .env
 ./scripts/install.sh --dry-run
 ./scripts/install.sh
 ```
 
-Restart Codex and VS Code after installation. Existing managed files are backed
-up under `~/.codex/backups/`. Credentials, sessions, history, caches, and
-plugins not declared in the manifest are preserved.
+Restart Codex and VS Code after installation. The installer backs up managed
+files before replacing them and preserves client runtime state.
 
-The installer manages:
+## What is managed
 
-- `agent-config/` into Codex, OpenCode, and Copilot instruction targets
-- declared Codex marketplaces and plugins from `agent-config/plugins.toml`
-- `.agents/skills/` into both `~/.agents/skills/` and `~/.copilot/skills/`
-- the `getkan-ai` Copilot custom agent into `~/.copilot/agents/`
-- the `plan`, `build`, and `reviewer` subagents into `~/.copilot/agents/`
-  and `$OPENCODE_HOME/agent/`
-- managed Zsh functions in `${ZDOTDIR:-$HOME}/.zshrc` that load the local
-  OpenRouter key when `codex` or `opencode` is run
+- Codex instructions, configuration, command rules, skills, and declared
+  marketplaces/plugins.
+- OpenCode configuration and generated `plan`, `build`, and `reviewer` agents.
+- Copilot instructions, skills, and custom agents.
+- Zsh functions that load the local OpenRouter key for `codex` and `opencode`.
 
-## Codex plugins
-
-Declare marketplaces and plugins in `agent-config/plugins.toml`. During a
-normal installation, the installer runs Codex's native marketplace and plugin
-commands for each declaration. This is additive: plugins or marketplaces not
-declared in the manifest remain machine-local and are not removed.
-
-The manifest tracks sources and plugin selections only. Downloaded plugin
-files, caches, credentials, and authentication remain in `~/.codex` and are
-never committed.
-
-### Trust GitHub projects
-
-Every installation renders `~/.codex/config.toml` with trusted-project entries
-for that user's `~/github` directory and every Git worktree found recursively
-beneath it. This includes repositories inside organization or grouping
-subdirectories.
-
-Codex trust entries match exact project roots rather than directory globs, so
-the installer discovers each repository instead of relying on a parent or `*`
-entry. Rerun the installer after creating or cloning repositories so new
-worktrees are added. Common dependency and build directories are skipped during
-discovery.
-
-## Codex basics
-
-New to Codex? It's OpenAI's coding agent CLI (and IDE extension), separate
-from GitHub Copilot. A few things worth knowing before you dive in:
-
-- Codex reads configuration from `CODEX_HOME` (`~/.codex` by default),
-  including `AGENTS.md` (instructions), `config.toml` (settings), `rules/`
-  (which shell commands it may run without asking), and skills under
-  `~/.agents/skills`. The installer in this repository populates those files
-  for you; see [docs/AI_LAYOUT.md](docs/AI_LAYOUT.md) for exactly what goes
-  where and why.
-- This repository configures Codex to use OpenRouter by default. The provider
-  and model settings live in `~/.codex/config.toml`; see "Codex-OpenRouter
-  Use" below.
-- `AGENTS.md` files are how you give Codex durable project instructions. This
-  repository's maintenance instructions are in [AGENTS.md](AGENTS.md),
-  while the portable client instructions live in `agent-config/AGENTS.md`.
-- Run `codex --help` or start `codex` with no arguments to open the
-  interactive TUI once it is installed and configured.
-
-## Codex-OpenRouter Use
-
-For the OpenRouter-backed Codex client, copy `.env.example` to `.env`, add the
-key, and install the repository configuration:
-
-```bash
-cp .env.example .env
-./scripts/install.sh
-```
-
-After installation, reload Zsh configuration and use Codex directly:
-
-```bash
-source "${ZDOTDIR:-$HOME}/.zshrc"
-codex
-```
-
-The managed `codex` and `opencode` Zsh functions source this repository's
-`.env` when invoked, passing the key to the client process without exporting it
-into the parent shell. Codex trust for `~/github` worktrees is added by the
-installer; other directories can be trusted through Codex when prompted.
-
+Copilot remains a separate GitHub service; it is not routed through OpenRouter.
 The `.env` file is ignored by Git and must never be committed.
 
-## OpenCode
+## Documentation
 
-[OpenCode](https://opencode.ai) is a separate terminal coding-agent CLI,
-installed with its own installer (`curl -fsSL https://opencode.ai/install |
-bash`), not by this repository. This repository configures it to use the
-same OpenRouter credential as Codex:
+- [Agent layout and discovery](docs/AI_LAYOUT.md)
+- [Operational workflow and client reference](docs/EDITOR_WORKFLOW.md)
+- [Product requirements](docs/SPEC.md), [roadmap](docs/ROADMAP.md), and
+  [current tasks](docs/TASKS.md)
+- [Codex introduction](docs/CODEX_INTRODUCTION.md),
+  [OpenAI model guide](docs/OPEN_AI_INTRODUCTION.md), and
+  [Copilot introduction](docs/COPILOT_INTRODUCTION.md)
+- [Shared skills](docs/SKILLS.md)
 
-```bash
-opencode
-```
-
-See [docs/AI_LAYOUT.md](docs/AI_LAYOUT.md) for OpenCode's configuration
-locations.
-
-## Copilot in VS Code
-
-GitHub Copilot loads the repository instructions from
-[.github/copilot-instructions.md](.github/copilot-instructions.md) in VS Code.
-Copilot is a separate service and cannot be configured to use OpenRouter as its
-model endpoint.
-
-The installer generates `~/.copilot/agents/getkan-ai.agent.md` from
-`agent-config/AGENTS.md`, adding Copilot-specific metadata. It links repository
-skills into `~/.copilot/skills` without installing documentation as global
-instructions.
-
-Set `COPILOT_HOME` before installing to use a different Copilot root. In
-Copilot Chat, select `getkan-ai` and ask whether it is working; it should answer
-from this repository's markdown files and name the files it used.
-
-## AI development workflow
-
-The reusable workflow separates planning from implementation and review:
-
-- `$ai-project-manager` reads or creates `AGENTS.md`, `docs/SPEC.md`,
-  `docs/ROADMAP.md`, and `docs/TASKS.md`, pauses at plan-approval boundaries,
-  and executes one reviewable phase at a time.
-- Review the final diff, run the repository validation, record manual testing,
-  and verify CI and review state before merge.
-
-Project-document templates live under
-`.agents/skills/ai-project-manager/assets/project-docs/`. Adapt them to the
-project instead of leaving placeholder requirements.
-
-See [docs/EDITOR_WORKFLOW.md](docs/EDITOR_WORKFLOW.md) for the complete
-lifecycle, client reference, a VS Code workflow, a staged move to Neovim with
-tmux, and sample task workflows.
+`docs/EDITOR_WORKFLOW.md` is the authoritative procedure for setup, planning,
+implementation, review, and editor workflows. The other documents describe
+client-specific concepts and link there for operational steps.
 
 ## Validate
 
 ```bash
 ./scripts/validate.sh
 ```
-
-The validation includes an isolated Linux installer integration test and runs
-dependency review for pull requests.
-
-The planning and client workflow documents under `docs/` are optional local
-references and are not required for validation from a clean checkout.
-
-## Repository layout
-
-- `AGENTS.md`: instructions for maintaining this repository
-- `docs/SPEC.md`, `docs/ROADMAP.md`, and `docs/TASKS.md`: local planning
-  documents that are optional for validation
-- `.agents/skills/`: reusable skills
-- `.env.example`: template for the ignored OpenRouter credential file
-- `agent-config/`: shared Codex and Copilot source configuration, instructions,
-  and rules
-- `docs/`: reference documentation loaded only when explicitly requested
-- `scripts/`: installation and validation
-
-See [docs/AI_LAYOUT.md](docs/AI_LAYOUT.md) for detailed discovery and
-configuration behavior.
-
-For background, see [docs/CODEX_INTRODUCTION.md](docs/CODEX_INTRODUCTION.md),
-[docs/OPEN_AI_INTRODUCTION.md](docs/OPEN_AI_INTRODUCTION.md),
-[docs/COPILOT_INTRODUCTION.md](docs/COPILOT_INTRODUCTION.md),
-and [docs/AI_CODING_AGENTS.md](docs/AI_CODING_AGENTS.md). For reducing model
-usage and cost, see [docs/TOKEN_OPTIMIZATION.md](docs/TOKEN_OPTIMIZATION.md).

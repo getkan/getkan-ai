@@ -20,7 +20,6 @@ test_zshrc_for_run="$task_test_root/test.zshrc"
 test_plugin_manifest="$task_test_root/plugins.toml"
 test_codex_log="$task_test_root/codex.log"
 test_github_repo="$test_user_home/github/nested/project"
-test_local_projects_file="$task_test_root/projects.toml"
 python_cmd=""
 python_seen=0
 
@@ -101,7 +100,6 @@ EOF
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
   OPENCODE_HOME="$test_opencode_home" \
-  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" >/dev/null
 
 assert_link "$test_codex_home/AGENTS.md" "$repo_root/agent-config/AGENTS.md"
@@ -177,7 +175,7 @@ EOF
   TEST_CODEX_LOG="$task_test_root/zsh-codex.log" \
     TEST_OPENCODE_LOG="$task_test_root/zsh-opencode.log" \
     PATH="$test_zsh_bin:$PATH" \
-    zsh -f -c 'alias opencode="echo stale alias"; source "$1"; [[ "$(whence -w opencode)" == "opencode: function" ]] || exit 5; codex --model test/model "prompt with spaces"; [[ -z "${OPENROUTER_API_KEY:-}" ]] || exit 4; opencode run "message with spaces"; [[ -z "${OPENROUTER_API_KEY:-}" ]]' \
+    env -u OPENROUTER_API_KEY zsh -f -c 'alias opencode="echo stale alias"; source "$1"; [[ "$(whence -w opencode)" == "opencode: function" ]] || exit 5; codex --model test/model "prompt with spaces"; [[ -z "${OPENROUTER_API_KEY:-}" ]] || exit 4; opencode run "message with spaces"; [[ -z "${OPENROUTER_API_KEY:-}" ]]' \
       test-shell "$test_zshrc_for_run" || fail "Zsh client functions did not load the synthetic key"
   grep -Fqx -- '--model' "$task_test_root/zsh-codex.log" ||
     fail "Codex function did not forward arguments"
@@ -209,7 +207,6 @@ HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_h
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
   OPENCODE_HOME="$test_opencode_home" \
   GETKAN_AI_PLUGIN_MANIFEST="$test_plugin_manifest" TEST_CODEX_LOG="$test_codex_log" \
-  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   PATH="$test_codex_bin:$PATH" "$repo_root/scripts/install.sh" >/dev/null
 grep -Fqx 'plugin marketplace add example/marketplace --ref main' "$test_codex_log" ||
   fail "installer did not add the managed marketplace"
@@ -220,7 +217,6 @@ HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_h
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
   OPENCODE_HOME="$test_opencode_home" \
   GETKAN_AI_PLUGIN_MANIFEST="$test_plugin_manifest" TEST_CODEX_LOG="$test_codex_log" \
-  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   PATH="$test_codex_bin:$PATH" "$repo_root/scripts/install.sh" >/dev/null
 [[ "$(wc -l <"$test_codex_log")" -eq 4 ]] ||
   fail "repeated install did not reconcile every managed plugin entry"
@@ -231,7 +227,6 @@ dry_user_home="$task_test_root/dry-run-home"
 dry_zdotdir="$task_test_root/dry-run-zdotdir"
 HOME="$dry_user_home" CODEX_HOME="$task_test_root/dry-run-codex" \
   AGENTS_HOME="$task_test_root/dry-run-agents" ZDOTDIR="$dry_zdotdir" \
-  GETKAN_AI_LOCAL_PROJECTS_FILE="$task_test_root/dry-run-projects.toml" \
   "$repo_root/scripts/install.sh" --dry-run >"$task_test_root/dry-run.log"
 [[ ! -e "$dry_zdotdir/.zshrc" ]] ||
   fail "dry run wrote the managed Zsh configuration"
@@ -327,7 +322,6 @@ raw_instruction_target="$(readlink "$test_codex_home/AGENTS.md")"
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
   OPENCODE_HOME="$test_opencode_home" \
-  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" >/dev/null
 [[ "$(readlink "$test_codex_home/AGENTS.md")" == "$raw_instruction_target" ]] ||
   fail "idempotent install replaced an equivalent relative link"
@@ -376,7 +370,6 @@ rm -- "$test_codex_home/rules"
 ln -s "$repo_root/agent-config/rules/." "$test_codex_home/rules"
 raw_rules_target="$(readlink "$test_codex_home/rules")"
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
-  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" >/dev/null
 [[ "$(readlink "$test_codex_home/rules")" == "$raw_rules_target" ]] ||
   fail "idempotent install replaced an equivalent normalized link"
@@ -390,7 +383,6 @@ ln -s "../cycle fixtures/cycle-a" "$test_codex_home/AGENTS.md"
 cycle_error_log="$task_test_root/cycle-error.log"
 
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
-  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" >/dev/null 2>"$cycle_error_log"
 grep -q '^error: too many symbolic-link hops:' "$cycle_error_log" ||
   fail "cyclic link did not report a bounded-resolution error"
@@ -402,7 +394,6 @@ control_error_log="$task_test_root/control-error.log"
 mkdir -p "$control_repo/.git"
 
 if HOME="$control_user_home" CODEX_HOME="$control_codex_home" AGENTS_HOME="$control_agents_home" \
-  GETKAN_AI_LOCAL_PROJECTS_FILE="$test_local_projects_file" \
   "$repo_root/scripts/install.sh" --dry-run >/dev/null 2>"$control_error_log"; then
   fail "installer accepted a project path containing a control character"
 fi

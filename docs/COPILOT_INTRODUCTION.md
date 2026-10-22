@@ -13,7 +13,8 @@ OpenRouter.
 For the shared workflow across clients, read
 [EDITOR_WORKFLOW.md](EDITOR_WORKFLOW.md). For general agent concepts, read
 [CODEX_INTRODUCTION.md](CODEX_INTRODUCTION.md); most of it applies to Copilot
-agent mode as well.
+agent mode as well. Use the editor workflow as the source for setup and
+operational procedures.
 
 ## The Copilot surfaces
 
@@ -52,8 +53,9 @@ After changing a skill or `agent-config/subagents/<name>.config.json`, rerun
 
 1. Sign in to GitHub in VS Code and confirm Copilot is active in the status
    bar.
-2. Run `./scripts/install.sh` from this repository and restart VS Code.
-3. Open Copilot Chat, open the agent picker, and confirm `plan`, `build`,
+2. Follow the [editor workflow](EDITOR_WORKFLOW.md) to install the shared
+   configuration, then restart VS Code.
+3. Open Copilot Chat and confirm `plan`, `build`,
    `reviewer`, `getkan-ai`, and `control-ai` are listed.
 4. Select `getkan-ai` and ask: "What is the current phase and the next open
    task?" A working install answers from `docs/TASKS.md` and
@@ -67,9 +69,8 @@ After changing a skill or `agent-config/subagents/<name>.config.json`, rerun
   when a suggestion is only partly right instead of accepting and editing.
 - A question: chat. Do not use agent mode to answer questions; it costs more
   and may edit files.
-- A change across several files: `plan`, then `build`.
-- A final check: `reviewer`, then `codex review --uncommitted` in the
-  terminal.
+- For changes and review procedures, follow the
+  [editor workflow](EDITOR_WORKFLOW.md).
 
 ### Give chat the right context
 
@@ -92,14 +93,8 @@ Inline suggestions read the surrounding file and open tabs. Improve them by:
 
 ### Use the plan, build, reviewer loop for real changes
 
-1. `plan`: describe the goal, constraints, and acceptance criteria. Read the
-   plan and correct it before approving.
-2. `build`: authorize one phase at a time and review each phase's diff in the
-   Source Control view before continuing.
-3. `reviewer`: run the validation commands it reports yourself.
-
-Approving phase by phase keeps diffs reviewable and stops a wrong assumption
-from spreading across many files.
+Use the [editor workflow](EDITOR_WORKFLOW.md) for the plan/build/reviewer
+procedure and review gates.
 
 ### Review agent-mode tool calls
 
@@ -147,9 +142,9 @@ the task changes, and restate the goal and acceptance criteria.
 | Built-in uncommitted-change review gate | Codex (`codex review --uncommitted`) |
 | Terminal-only work in tmux and Neovim | Codex or OpenCode |
 
-The workflows are interchangeable because all three read the same skills and
-instructions. See [EDITOR_WORKFLOW.md](EDITOR_WORKFLOW.md) for how to combine
-them.
+The workflows share source material but retain client-specific instruction
+discovery, tools, and permissions. See
+[EDITOR_WORKFLOW.md](EDITOR_WORKFLOW.md) for how to combine them.
 
 ## Security and privacy
 
@@ -177,6 +172,6 @@ them.
 - The right surface was used: inline, chat, agent, or a custom agent.
 - Context came from attached files or symbols, not long pasted blocks.
 - Larger changes went through `plan`, `build`, and `reviewer`.
-- Every terminal command the agent ran was read before approval.
-- Validation ran, and `codex review --uncommitted` passed before commit.
+- Follow the validation and review gates in the
+  [editor workflow](EDITOR_WORKFLOW.md).
 - No secrets were attached to chat or entered tracked files.

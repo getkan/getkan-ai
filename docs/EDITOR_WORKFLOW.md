@@ -30,9 +30,9 @@ is.
 
 Shared concepts:
 
-- **Source of truth**: `agent-config/` holds the portable configuration shared
-  by Codex and OpenCode; `.agents/skills/` holds reusable workflows shared by
-  all three clients.
+- **Source of truth**: `agent-config/` holds instructions and rules shared by
+  Codex and Copilot, plus client-specific Codex and OpenCode configuration.
+  `.agents/skills/` holds reusable workflows shared by all three clients.
 - **Installer**: `./scripts/install.sh` (add `--dry-run` to preview) renders
   and links everything below into place. Rerun it after changing a skill, a
   subagent config file, or adding repositories under `~/github`.
@@ -48,8 +48,9 @@ Shared concepts:
 
 ### Choosing a harness
 
-All three harnesses consume the same instructions and skills after
-`./scripts/install.sh`. Pick per task, not per project.
+All three harnesses use the shared workflow sources with client-specific
+instruction, configuration, and agent integration after `./scripts/install.sh`.
+Pick a harness per task, not per project.
 
 | Harness | Model route | Strengths | Boundary enforcement |
 | --- | --- | --- | --- |
@@ -76,10 +77,9 @@ Notes:
 | Repository instructions | `AGENTS.md` from the repository root to the working directory |
 | Repository skills | `.agents/skills/<name>/SKILL.md`, discovered from the working directory up to the repository root |
 
-`~/.codex/config.toml` is rendered fresh on every install: the shared base
+`~/.codex/config.toml` is rendered fresh on every install: the Codex base
 config from `agent-config/config.toml`, plus a trusted-project entry for
 `~/github` and every Git worktree found beneath it, plus any machine-local
-trust overlay (`agent-config/projects.toml`, git-ignored), plus any
 `notify`/`marketplaces`/`plugins`/`notice`/`hooks.state`/
 `mcp_servers.node_repl`/`shell_environment_policy.set` state your existing
 file already had (this installer does not manage or overwrite that state).

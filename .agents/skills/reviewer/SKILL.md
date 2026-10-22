@@ -19,8 +19,8 @@ for the user or the `build` subagent to fix.
    defines (lint, type-check, build), then report the commands that must be run
    by the parent agent. This read-only subagent does not execute commands.
 4. If the repository defines an automated review command (for example
-   `codex review --uncommitted`), run it and verify every finding against
-   the current diff.
+   `codex review --uncommitted`), report it for the parent agent to run. Do not
+   execute commands or launch a nested review.
 5. Separate actionable defects from verified false positives; do not change
    code to silence a false positive.
 

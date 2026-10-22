@@ -7,8 +7,10 @@
 - [x] Add an isolated Linux installer integration test.
 - [x] Add pull-request CI, dependency review, Dependabot, and a PR template.
 - [x] Add GitHub Copilot repository instructions and OpenRouter configuration.
-- [x] Establish a shared `agent-config/` source for Codex and Copilot.
-- [x] Install repository skills and docs into Copilot user directories.
+- [x] Establish `agent-config/` as the source for Codex/Copilot shared
+  instructions and client-specific Codex/OpenCode configuration.
+- [x] Install shared skills into Codex and Copilot user directories and render
+  selected workflows as OpenCode agents; keep reference docs repository-local.
 - [x] Configure Zsh to load the OpenRouter key when Codex or OpenCode runs.
 - [x] Trust all Git worktrees beneath the current user's `~/github` directory.
 - [x] Run local repository, shell, installer, workflow, and skill validation.
@@ -24,8 +26,9 @@
 - [x] Document a VS Code workflow, a staged Neovim and tmux migration, and
   sample task workflows in `docs/EDITOR_WORKFLOW.md`.
 - [x] Run `./scripts/validate.sh` after the documentation consolidation.
-- [ ] Commit `docs/EDITOR_WORKFLOW.md` together with the `docs/WORKFLOW.md`
-  removal so CI's required-file check passes.
+- [x] Commit `docs/EDITOR_WORKFLOW.md` together with the `docs/WORKFLOW.md`
+  removal so CI's required-file check passes. Verified in commit `673983f`;
+  `docs/EDITOR_WORKFLOW.md` is tracked and `docs/WORKFLOW.md` is absent.
 
 ## Current phase: Enforced repository governance
 

@@ -1,9 +1,9 @@
 # Agent configuration layout
 
-This repository is a shared agent base for GitHub Copilot in VS Code and an
-OpenRouter-backed Codex client. The clients remain separate services, but the
-installer distributes the same source instructions, skills, and reference docs
-to each client's discovery locations.
+This repository provides shared instructions and skills for GitHub Copilot in
+VS Code and OpenRouter-backed Codex, plus OpenCode-specific configuration and
+generated agents. The clients remain separate services; the installer adapts
+these sources to each client's discovery locations and capabilities.
 
 ## What Codex loads automatically
 

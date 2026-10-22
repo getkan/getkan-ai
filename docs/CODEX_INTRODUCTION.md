@@ -5,6 +5,8 @@ Codex is an AI coding agent. It combines a language model with tools that can in
 Codex is most useful when you treat it as a capable engineering collaborator rather than as an autocomplete box. You provide a goal and the relevant constraints. Codex gathers context, proposes or applies a focused change, runs checks, and reports what it actually verified.
 
 This guide introduces the concepts needed to use Codex safely and effectively.
+For repository setup and the operational plan/build/review process, use the
+[editor workflow](EDITOR_WORKFLOW.md).
 
 ## What Codex Is
 
@@ -87,23 +89,6 @@ Use a skill when the task needs a repeatable workflow. Do not load every skill i
 
 For example, a project-management skill is appropriate when the task involves specifications, roadmaps, task tracking, approval checkpoints, or planning evidence. Language skills are appropriate when the implementation requires a particular technology.
 
-## A Reliable Codex Session
-
-A strong session usually follows this sequence:
-
-1. State the desired outcome and constraints.
-2. Identify the smallest relevant code or documentation surface.
-3. Inspect repository instructions and nearby callers or tests.
-4. Form a falsifiable hypothesis about the behavior or failure.
-5. Make a focused change.
-6. Run the cheapest check that could disprove the hypothesis.
-7. Repair or extend the same slice if the check exposes a local defect.
-8. Run the relevant broader validation.
-9. Review the diff for unintended changes.
-10. Report changed files, checks run, skipped checks, and remaining risk.
-
-For a small task, this may take only a few commands. For a large feature, repeat the cycle one phase at a time.
-
 ## Writing Better Prompts
 
 A useful Codex prompt includes:
@@ -130,18 +115,10 @@ You do not need to prescribe every implementation detail. Give Codex enough cont
 
 ## Reviewing Codex Output
 
-Treat an agent report as a claim that needs evidence. Check:
-
-- Did the stated files actually change?
-- Does the diff match the requested scope?
-- Did the relevant test run, or was it only inferred?
-- Does the test cover the changed behavior?
-- Were existing user changes preserved?
-- Are generated files, symlinks, and installation targets correct?
-- Are security-sensitive values absent from the diff?
-- Does the documentation describe the current behavior?
-
-A passing test is valuable but not complete proof. A test can pass while the wrong file is installed, a user-facing workflow is confusing, or an edge case remains untested.
+Treat an agent report as a claim that needs evidence. Inspect the diff and
+verify the relevant checks, generated files, and documentation. The review
+gates and validation sequence are in the
+[editor workflow](EDITOR_WORKFLOW.md).
 
 ## Safe Command Use
 

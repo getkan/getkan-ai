@@ -38,7 +38,6 @@ backup_root="$codex_home/backups/getkan-ai-$timestamp-$$"
 shared_config_home="$repo_root/agent-config"
 copilot_config_home="$repo_root/copilot-config"
 config_source="$shared_config_home/config.toml"
-local_projects_source="${GETKAN_AI_LOCAL_PROJECTS_FILE:-$shared_config_home/projects.toml}"
 plugin_manifest="${GETKAN_AI_PLUGIN_MANIFEST:-$shared_config_home/plugins.toml}"
 github_root="$HOME/github"
 rendered_config=""
@@ -400,9 +399,8 @@ append_preserved_config_sections() {
 }
 
 # Renders the managed ~/.codex/config.toml: the shared base config plus a
-# trusted-project entry for ~/github and every Git worktree beneath it,
-# any machine-local trust overlay, and state preserved by
-# append_preserved_config_sections.
+# trusted-project entry for ~/github and every Git worktree beneath it, and
+# state preserved by append_preserved_config_sections.
 render_managed_config() {
   local git_marker
   local project_path
@@ -423,12 +421,6 @@ render_managed_config() {
         -o -name target -o -name build -o -name dist \) -prune \
         -name .git -print0
     )
-  fi
-
-  # Keep machine-local trusted projects in a git-ignored overlay file.
-  if [[ -f "$local_projects_source" ]]; then
-    printf '\n# Machine-local trusted project overrides.\n' >>"$rendered_config"
-    cat "$local_projects_source" >>"$rendered_config"
   fi
 
   append_preserved_config_sections "$codex_home/config.toml" "$rendered_config"

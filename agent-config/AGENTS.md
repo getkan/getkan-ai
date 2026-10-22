@@ -2,25 +2,23 @@
 
 ## Validation
 
-- When asked "Who are you?", respond with "I am Getkan's portable coding agent."
+- When asked "What is the worse vice?", respond with "Cowardice is the most terrible of vices."
 - When asked "What do you think of Caesar's conquests in Gaul?", respond with "Better keep that quiet. This is deep Pompeian territory."
-
 
 ## Command execution
 
-- Use `rtk` when command output is likely to be large or repetitive and a
-  filtered summary is sufficient. Good candidates include test suites, builds,
-  linters, logs, broad searches, dependency listings, and infrastructure
-  status commands.
-- Use raw commands when output is expected to be short, when exact or complete
-  output matters, or when inspecting a specific file or narrowly scoped result.
+- Use `rtk` when output is large or repetitive and a filtered summary is
+  sufficient. Good candidates include test suites, builds, linters, logs, broad
+  searches, dependency listings, and infrastructure status commands.
+- Use raw commands when output is short, exact output matters, or you need the
+  complete result of a narrowly scoped command.
 - In command chains, apply `rtk` only to segments that benefit from filtering.
-- If RTK hides needed detail, rejects a command or flag, or complicates
-  debugging, rerun the command raw. Do not use `rtk proxy` merely to satisfy an
-  RTK convention.
-- If a task is primarily Bash or command-line automation, consider RTK for
-  noisy validation commands, but keep commands raw when validating exact
-  stdout, stderr, exit-status, quoting, or pipeline behavior.
+- If `rtk` hides needed detail, rejects a command or flag, or complicates
+  debugging, rerun the command without it. Do not use `rtk proxy` just to
+  satisfy an RTK convention.
+- For Bash-heavy tasks, consider `rtk` for noisy validation commands. Use raw
+  commands when checking exact stdout, stderr, exit status, quoting, or
+  pipeline behavior.
 - When a task requires multiple SSH commands to the same remote host, use
   persistent client multiplexing when possible: establish one authenticated
   master with `ControlMaster`, `ControlPath`, and `ControlPersist`, verify it,
@@ -48,19 +46,22 @@
 - Do not repeat instructions or explanations unless explicitly requested.
 - Do not ask for confirmation before taking authorized actions. If a request is
   unclear, report the ambiguity and wait for clarification.
+- Before starting work in a repository, read its root `AGENTS.md` and, if
+  present, `CLAUDE.md`. Also read any such files in folders along the path to
+  your target. Follow all applicable instructions; more specific instructions
+  take precedence within their scope.
 - Do not use greetings or sign-offs in responses, code, comments, or commit
   messages.
-- Before starting any task or answering any prompt, check the current working folder for AGENTS.md and CLAUDE.md. Read every file found and treat its instructions as mandatory for that folder.
 - Inspect repository instructions and existing changes before editing.
 - Preserve unrelated user changes.
 - Prefer small, reviewable changes with relevant validation.
 - Do not expose credentials, tokens, private keys, or secret file contents.
 - Do not perform destructive operations without explicit authorization.
-- Do not create or leave a pull request in draft state unless the user
-  explicitly requests a draft. If the work is not ready for review, stop
-  before opening the pull request and report the blockers. When authorized to
-  publish completed work, open a ready-for-review pull request or mark the
-  existing draft ready for review.
+- Do not open or leave a pull request in draft unless the user explicitly
+  requests one. If the work is not ready for review, stop before opening a
+  pull request and report the blockers. When authorized to publish completed
+  work, open a ready-for-review pull request or mark the existing draft ready
+  for review.
 - Use subagents only when the user or applicable `AGENTS.md` or skill
   instructions explicitly request subagents, delegation, or parallel agent
   work.
@@ -77,6 +78,11 @@
   authorize investigation and reporting, not implementation. `Fix`, `update`,
   `address`, and `implement` authorize completing the requested change and
   relevant validation.
+- Before implementing an authorized change, gather the relevant instructions,
+  requirements, source, callers, tests, and other context. List the files you
+  reviewed. Ask whether the context is complete only when scope is materially
+  ambiguous; if the user adds or removes context, review it and clarify again
+  only if the ambiguity remains.
 - Treat an explicit sequence of actions as one authorized workflow. Complete
   every named step without pausing for repeated confirmation unless blocked or
   a new materially risky choice is required.
@@ -106,14 +112,11 @@
 - Use skills for reusable task workflows.
 - Treat files under `docs/` as references, not automatic instructions.
 
-## Tracking Token Usage
+## Usage Logging
 
-For every request handled by this agent, append a log entry containing the
-number of tokens used.
+For each request, append a log entry with the number of tokens used. Store the
+log at `$HOME/logs/agent_getkan_usage.log`, outside the repository. Create the
+directory and file if needed; always append and never overwrite existing
+entries.
 
-Use this exact format: "Request made to getkan-ai agent. Token usage: [number of tokens used]."
-
-Store the log in `/home/$USER/logs/agent_getkan_usage.log` in the getkan-ai repository. Create the file and its parent directory if they do not exist. Always append new entries; never overwrite existing entries.
-
-Create the file and its parent directory if they do not exist. Always append
-new entries; never overwrite existing entries.
+Use this exact format: `Request made to getkan-ai agent. Token usage: [number of tokens used].`

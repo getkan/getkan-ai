@@ -6,8 +6,8 @@ Status: Complete
 
 ### Outcome
 
-Shared instructions, OpenRouter configuration, rules, skills, and reference
-docs install into the appropriate Codex and Copilot locations without replacing
+Shared instructions, workflows, and client-specific configuration install into
+the appropriate Codex, Copilot, and OpenCode locations without replacing
 private client runtime state.
 
 ### Exit criteria
@@ -33,8 +33,10 @@ OpenRouter environment for direct `codex` and `opencode` commands.
 - Add cross-platform installer integration tests and pull-request CI.
 - Add Dependabot coverage, dependency review, and PR evidence prompts.
 - Add GitHub Copilot repository instructions for VS Code.
-- Establish `agent-config/` as the shared Codex and Copilot source directory.
-- Install shared skills and docs into the Copilot user directories.
+- Establish `agent-config/` as the source for Codex/Copilot shared instructions
+  and client-specific Codex/OpenCode configuration.
+- Install shared skills into Codex and Copilot user directories and render
+  selected workflows as OpenCode agents; keep reference docs repository-local.
 - Use the OpenRouter client for local pull-request readiness checks.
 - Render exact trusted-project entries for every Git worktree beneath the
   current user's `~/github` directory.
@@ -139,6 +141,9 @@ documented at a level a beginner to local LLMs can follow and verify.
 
 ## Change log
 
+- 2026-10-22: Removed the machine-local trusted-project overlay from the
+  installer. Projects previously trusted only through that overlay may prompt
+  for trust again; add them through Codex's supported project-trust workflow.
 - 2026-10-18: Merged `docs/WORKFLOW.md`, `docs/CLIENT_WORKFLOW.md`, and
   `docs/CLIENT_REFERENCE.md` into `docs/EDITOR_WORKFLOW.md`, with the newest
   content taking precedence where they conflicted. Added VS Code, Neovim and
