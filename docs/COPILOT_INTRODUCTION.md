@@ -171,7 +171,8 @@ discovery, tools, and permissions. See
 
 - The right surface was used: inline, chat, agent, or a custom agent.
 - Context came from attached files or symbols, not long pasted blocks.
-- Larger changes went through `plan`, `build`, and `reviewer`.
+- Ask repository questions with `ask`; larger changes go through `plan`,
+  `build`, and `reviewer`.
 - Follow the validation and review gates in the
   [editor workflow](EDITOR_WORKFLOW.md).
 - No secrets were attached to chat or entered tracked files.

@@ -87,9 +87,9 @@ new shell after installation.
 - The managed `opencode` Zsh function loads the same environment variable
   from `.env`; no separate credential file is managed by this repository.
 
-## Subagents: plan, build, reviewer
+## Subagents: ask, plan, build, reviewer
 
-The `plan`, `build`, and `reviewer` skills under `.agents/skills/` also
+The `ask`, `plan`, `build`, and `reviewer` skills under `.agents/skills/` also
 render as named custom agents. Each subagent's client mode and permitted or
 denied tools live in a human-readable config file,
 `agent-config/subagents/<name>.config.json`, instead of being hardcoded in
@@ -104,8 +104,9 @@ denied tools live in a human-readable config file,
 ```
 
 - Target: `~/.copilot/agents/<name>.agent.md`, generated with a `tools` list
-  taken from `copilotTools`. `plan` and `reviewer` exclude `edit` and
-  `execute`, enforcing the read-only boundary described in each skill.
+  taken from `copilotTools`. `ask` is limited to `read` and `search`; `plan`
+  and `reviewer` exclude `edit` and `execute`, enforcing their read-only
+  boundaries.
 - Target: `$OPENCODE_HOME/agent/<name>.md` (default
   `~/.config/opencode/agent/`), generated with the config's `mode` and a
   `tools:` block that denies every name listed in `opencodeDeniedTools`.
@@ -113,9 +114,9 @@ denied tools live in a human-readable config file,
   `write` deny mutation-capable tools. Confirm with
   `opencode debug agents` against the installed OpenCode version.
 - Codex has no native per-agent tool-permission mechanism. Codex sessions
-  discover these as ordinary skills (`.agents/skills/plan`,
-  `.agents/skills/build`, `.agents/skills/reviewer`) and rely on the skill's
-  own instructions to honor the same no-edit boundary.
+  discover these as ordinary skills (`.agents/skills/ask`,
+  `.agents/skills/plan`, `.agents/skills/build`, `.agents/skills/reviewer`)
+  and rely on each skill's own instructions to honor its tool boundary.
 - Rerun the installer after changing a skill body or a subagent config file
   to refresh the rendered agent files.
 

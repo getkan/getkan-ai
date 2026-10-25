@@ -272,6 +272,16 @@ grep -Fq 'without editing any file. Use when the user wants a plan' "$installed_
 grep -Fq 'Never edit, create, move, or delete a file.' "$installed_plan_agent" ||
   fail "generated plan subagent does not mirror .agents/skills/plan/SKILL.md"
 
+installed_ask_agent="$test_copilot_agents_home/ask.agent.md"
+[[ -f "$installed_ask_agent" && ! -L "$installed_ask_agent" ]] ||
+  fail "expected generated ask subagent file: $installed_ask_agent"
+grep -Fqx 'name: "ask"' "$installed_ask_agent" ||
+  fail "generated ask subagent is missing the ask name"
+grep -Fqx 'tools: [read, search]' "$installed_ask_agent" ||
+  fail "generated ask subagent has unexpected tools"
+grep -Fq 'Answer the user'\''s question using relevant evidence.' "$installed_ask_agent" ||
+  fail "generated ask subagent does not contain its read-only instructions"
+
 installed_build_agent="$test_copilot_agents_home/build.agent.md"
 grep -Fqx 'tools: [read, edit, search, execute, todo, agent]' "$installed_build_agent" ||
   fail "generated build subagent has unexpected tools"
@@ -294,6 +304,16 @@ done
 grep -Fqx '  task: false' "$installed_plan_opencode_agent" ||
   fail "generated OpenCode plan agent does not disable task"
 
+installed_ask_opencode_agent="$test_opencode_home/agent/ask.md"
+[[ -f "$installed_ask_opencode_agent" && ! -L "$installed_ask_opencode_agent" ]] ||
+  fail "expected generated OpenCode ask agent file: $installed_ask_opencode_agent"
+grep -Fqx 'mode: subagent' "$installed_ask_opencode_agent" ||
+  fail "generated OpenCode ask agent is missing mode: subagent"
+for denied_tool in bash edit patch task write; do
+  grep -Fqx "  $denied_tool: false" "$installed_ask_opencode_agent" ||
+    fail "generated OpenCode ask agent does not disable $denied_tool"
+done
+
 installed_build_opencode_agent="$test_opencode_home/agent/build.md"
 [[ -f "$installed_build_opencode_agent" && ! -L "$installed_build_opencode_agent" ]] ||
   fail "expected generated OpenCode build agent file: $installed_build_opencode_agent"
@@ -302,7 +322,7 @@ grep -Fqx 'mode: all' "$installed_build_opencode_agent" ||
 grep -Fq '^tools:' "$installed_build_opencode_agent" &&
   fail "generated OpenCode build agent should not restrict tools"
 
-for subagent in plan build reviewer; do
+for subagent in ask plan build reviewer; do
   source_skill="$repo_root/.agents/skills/$subagent/SKILL.md"
   for generated_agent in \
     "$test_copilot_agents_home/$subagent.agent.md" \

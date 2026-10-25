@@ -25,8 +25,8 @@ repository/.agents/skills/<skill-name>/SKILL.md
 Codex scans repository skill directories from the working directory up to the
 repository root and uses `~/.agents/skills/` for user-wide skills. The
 installer links this repository's skills into the Codex and Copilot user
-locations. It renders the `plan`, `build`, and `reviewer` workflows as named
-OpenCode agents using their configured permissions.
+locations. It renders the `ask`, `plan`, `build`, and `reviewer` workflows as
+named OpenCode agents using their configured permissions.
 
 ## Required layout
 
@@ -55,6 +55,7 @@ clear `name` and `description`.
 ## Repository skills
 
 - `ai-project-manager`
+- `ask`
 - `build`
 - `create-skill`
 - `css`
@@ -109,12 +110,14 @@ entries over time, including concurrent entries at different stages, with
 independent approvals and evidence linked by feature/project ID across SPEC
 and TASKS. Completing one entry does not advance the others.
 
-## Subagents: plan, build, reviewer
+## Subagents: ask, plan, build, reviewer
 
-`plan`, `build`, and `reviewer` are skills that also render as named
+`ask`, `plan`, `build`, and `reviewer` are skills that also render as named
 subagents. The installer renders each one into a client-specific custom
 agent in addition to linking it as an ordinary skill:
 
+- `ask`: answers questions thoroughly after gathering the necessary context.
+  It is read-only and cannot make repository, system, or service changes.
 - `plan`: read-only investigation and phased planning. Never edits a file.
 - `build`: implements an authorized plan, including feature-specific tests.
   Can call the `plan` subagent when no plan exists yet. Feature work respects
@@ -127,7 +130,8 @@ The installer renders these into `~/.copilot/agents/<name>.agent.md` and
 `$OPENCODE_HOME/agent/<name>.md` (default `~/.config/opencode/agent/`) using
 each subagent's mode and tool permissions from
 `agent-config/subagents/<name>.config.json`, not from `scripts/install.sh`.
-`plan` and `reviewer` deny `edit` (and, for OpenCode, `task`, which also
-denies calling other subagents). Codex has no native per-agent
-tool-permission mechanism, so Codex sessions rely on the skill's own
-instructions to honor the same boundary.
+`ask` is limited to read/search tools in Copilot and denies mutation, shell,
+and delegation tools in OpenCode. `plan` and `reviewer` deny `edit` (and, for
+OpenCode, `task`, which also denies calling other subagents). Codex has no
+native per-agent tool-permission mechanism, so Codex sessions rely on the
+skill's own instructions to honor the same boundary.

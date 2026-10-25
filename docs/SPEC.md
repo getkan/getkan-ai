@@ -31,9 +31,9 @@ repositories.
 - Install a Copilot custom agent named `getkan-ai` that answers setup,
   workflow, requirement, roadmap, and task-status questions from repository
   markdown files.
-- Render the `plan`, `build`, and `reviewer` skills as named subagents for
-  GitHub Copilot and OpenCode, enforcing a no-edit boundary on `plan` and
-  `reviewer` where the client supports tool permissions.
+- Render the `ask`, `plan`, `build`, and `reviewer` skills as named subagents
+  for GitHub Copilot and OpenCode, enforcing a no-edit boundary on `ask`,
+  `plan`, and `reviewer` where the client supports tool permissions.
 - Trust the current user's `~/github` directory and every Git worktree
   discovered recursively beneath it on each installation.
 - Configure Zsh functions so `codex` and `opencode` load the local OpenRouter
@@ -75,8 +75,8 @@ repositories.
   and Copilot, Codex configuration, OpenCode configuration, and client-specific
   subagent settings.
 - `.agents/skills/` is the shared workflow source linked for Codex and Copilot;
-  the installer renders the `plan`, `build`, and `reviewer` skills as OpenCode
-  agents.
+  the installer renders the `ask`, `plan`, `build`, and `reviewer` skills as
+  OpenCode agents.
 - The installer renders `config.toml` with machine-specific exact trust entries
   while linking the other managed files.
 - The installer generates `~/.copilot/agents/getkan-ai.agent.md` from
@@ -84,9 +84,9 @@ repositories.
   `copilot-config/AGENT_CONTROL.md`.
 - `.agents/skills/` contains reusable workflows linked into `AGENTS_HOME`.
 - The same `.agents/skills/` directories are linked into `~/.copilot/skills`.
-- The `plan`, `build`, and `reviewer` skills are additionally rendered into
-  `~/.copilot/agents/<name>.agent.md` and `$OPENCODE_HOME/agent/<name>.md`
-  as named subagents.
+- The `ask`, `plan`, `build`, and `reviewer` skills are additionally rendered
+  into `~/.copilot/agents/<name>.agent.md` and
+  `$OPENCODE_HOME/agent/<name>.md` as named subagents.
 - `docs/` contains repository-local reference files loaded when needed.
   `docs/EDITOR_WORKFLOW.md` is the single workflow and client reference; it
   replaces the former `WORKFLOW.md`, `CLIENT_WORKFLOW.md`, and

@@ -24,7 +24,7 @@ is.
 | `SPEC.md` | Canonical requirements, environment baseline, technology decisions, high-level design, and acceptance criteria |
 | `ROADMAP.md` | Delivery outcomes/subprojects, dependencies, lifecycle stage, risks, approval gates, and changes |
 | `TASKS.md` | High-level work refined into user-selected tasks, tests, evidence, status, and commit checkpoints |
-| `.agents/skills/` | Reusable workflows shared with all clients, including `plan`, `build`, and `reviewer` |
+| `.agents/skills/` | Reusable workflows shared with all clients, including `ask`, `plan`, `build`, and `reviewer` |
 | `agent-config/subagents/<name>.config.json` | Client mode and tool permissions for each subagent |
 | `docs/` | Repository-local reference material loaded by reference |
 
@@ -59,9 +59,9 @@ Pick a harness per task, not per project.
 
 | Harness | Model route | Strengths | Boundary enforcement |
 | --- | --- | --- | --- |
-| GitHub Copilot (VS Code Chat) | GitHub Copilot service | Inline completions, visual diffs, agent picker, browser tools | Tool-level: `plan` and `reviewer` have no `edit` or `execute` tool |
+| GitHub Copilot (VS Code Chat) | GitHub Copilot service | Inline completions, visual diffs, agent picker, browser tools | Tool-level: `ask` has only `read` and `search`; `plan` and `reviewer` have no `edit` or `execute` tool |
 | Codex (OpenAI CLI) | OpenRouter via `~/.codex/config.toml` | `codex review --uncommitted`, `AGENTS.md` and skill discovery, plugins | Instruction-only; use `--sandbox read-only` for hard limits |
-| OpenCode | OpenRouter via `opencode.json` | Terminal-only, named agents with denied tools | Tool-level: `plan` and `reviewer` deny `edit`, `write`, `patch`, `bash`, `task` |
+| OpenCode | OpenRouter via `opencode.json` | Terminal-only, named agents with denied tools | Tool-level: `ask`, `plan`, and `reviewer` deny `edit`, `write`, `patch`, `bash`, `task` |
 
 Notes:
 
@@ -417,15 +417,16 @@ verification and Copilot Chat agent-picker workflows if you still want them.
 
 What changes for the AI harness:
 
-- **Copilot custom agents.** The `plan`, `build`, and `reviewer` agents in
+- **Copilot custom agents.** The `ask`, `plan`, `build`, and `reviewer` agents in
   `~/.copilot/agents/` are a VS Code Copilot Chat feature. Neovim Copilot
   plugins provide completions and chat, but do not load those agent files.
   In a terminal, use the GitHub Copilot CLI (`copilot`) if it is installed
   and supports custom agents in your version, or use the next two options.
-- **Codex** becomes the main harness. Invoke `$plan`, `$build`, and
-  `$reviewer` as skills in the `agent` window. Run planning with
-  `codex --sandbox read-only` when you want a hard no-edit guarantee.
-- **OpenCode** provides the tool-enforced `plan` / `build` / `reviewer`
+- **Codex** becomes the main harness. Invoke `$ask` for read-only questions,
+  `$plan`, `$build`, and `$reviewer` as skills in the `agent` window. Run
+  planning with `codex --sandbox read-only` when you want a hard no-edit
+  guarantee.
+- **OpenCode** provides the tool-enforced `ask` / `plan` / `build` / `reviewer`
   agents from the terminal.
 - **Review gate** is unchanged: `codex review --uncommitted`.
 

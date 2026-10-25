@@ -33,6 +33,7 @@ required_files=(
   "agent-config/config.toml"
   "agent-config/opencode.config.json"
   "agent-config/opencode.cli.json"
+  "agent-config/subagents/ask.config.json"
   "agent-config/subagents/plan.config.json"
   "agent-config/subagents/build.config.json"
   "agent-config/subagents/reviewer.config.json"

@@ -23,7 +23,8 @@ files before replacing them and preserves client runtime state.
 
 - Codex instructions, configuration, command rules, skills, and declared
   marketplaces/plugins.
-- OpenCode configuration and generated `plan`, `build`, and `reviewer` agents.
+- OpenCode configuration and generated `ask`, `plan`, `build`, and `reviewer`
+  agents.
 - Copilot instructions, skills, and custom agents.
 - Zsh functions that load the local OpenRouter key for `codex` and `opencode`.
 

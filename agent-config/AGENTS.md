@@ -73,7 +73,8 @@
 
 ## Task interpretation
 
-- When a user's prompt ends with `?`, use the `plan` subagent and do not implement changes.
+- When a user's prompt ends with `?`, use the `ask` subagent to gather the
+  necessary context and answer thoroughly without making changes.
 - Match the requested action mode. `Inspect`, `review`, `diagnose`, and `report`
   authorize investigation and reporting, not implementation. `Fix`, `update`,
   `address`, and `implement` authorize completing the requested change and

@@ -769,7 +769,7 @@ done
 link_opencode_path "$shared_config_home/opencode.config.json" "$opencode_home/opencode.json"
 link_opencode_path "$shared_config_home/opencode.cli.json" "$opencode_home/cli.json"
 
-for subagent in plan build reviewer; do
+for subagent in ask plan build reviewer; do
   source_skill="$repo_root/.agents/skills/$subagent/SKILL.md"
   subagent_config="$shared_config_home/subagents/$subagent.config.json"
   [[ -f "$source_skill" && -f "$subagent_config" ]] || continue

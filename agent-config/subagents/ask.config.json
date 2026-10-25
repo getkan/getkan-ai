@@ -1,0 +1,14 @@
+{
+    "mode": "subagent",
+    "copilotTools": [
+        "read",
+        "search"
+    ],
+    "opencodeDeniedTools": [
+        "edit",
+        "write",
+        "patch",
+        "bash",
+        "task"
+    ]
+}
