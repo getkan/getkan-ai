@@ -1,5 +1,12 @@
 # Getkan AI roadmap
 
+## Current state
+
+Stable. No active delivery phase, feature lifecycle stage, or planned features.
+The completed phases below describe delivery history. Previously listed
+governance and local-model work is inactive, not completed or approved future
+work; resume it only on explicit request.
+
 ## Phase 1: Portable agent foundation
 
 Status: Complete
@@ -61,7 +68,10 @@ OpenRouter environment for direct `codex` and `opencode` commands.
 
 ## Phase 3: Enforced repository governance
 
-Status: In progress
+Status: Inactive; removed from the active roadmap
+
+The following scope is retained for reference only. External GitHub settings
+have not been verified by this status update; do not treat them as completed.
 
 ### Outcome
 
@@ -84,9 +94,12 @@ repository.
 
 ## Phase 4: Local model token optimization
 
-Status: Not started
+Status: Inactive; not planned
 
-See [docs/LOCAL_MODEL_INTEGRATION.md](docs/LOCAL_MODEL_INTEGRATION.md) for the
+The following proposal is retained for reference only, not as a delivery
+commitment or authorization to install or deploy local-model infrastructure.
+
+See [LOCAL_MODEL_INTEGRATION.md](LOCAL_MODEL_INTEGRATION.md) for the
 beginner-level glossary, model overview, and staged setup guide.
 
 ### Outcome
@@ -141,6 +154,13 @@ documented at a level a beginner to local LLMs can follow and verify.
 
 ## Change log
 
+- 2026-10-24: Recorded the stable project baseline with no planned features.
+  Removed governance and local-model proposals from active delivery without
+  marking unverified work complete.
+- 2026-10-24: Completed the cross-project four-stage feature workflow in commit
+  `69908de`, including reusable document roles, stage approval gates, task
+  commit checkpoints, integration-first skeleton design, feature-wide review,
+  and template/generated-agent regression checks.
 - 2026-10-22: Removed the machine-local trusted-project overlay from the
   installer. Projects previously trusted only through that overlay may prompt
   for trust again; add them through Codex's supported project-trust workflow.

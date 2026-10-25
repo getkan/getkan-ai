@@ -1,5 +1,11 @@
 # Getkan AI specification
 
+## Project status
+
+The project is stable, with no active feature development or planned features.
+The requirements below describe the supported baseline, not a future backlog.
+Maintenance and new feature work begin only when explicitly requested.
+
 ## Problem
 
 Agent installations mix portable configuration with credentials, sessions,
@@ -43,6 +49,16 @@ repositories.
 - Support repeated installation without replacing already-correct links.
 - Provide project-planning templates and separate planning from pull-request
   readiness.
+- Define a four-stage feature-development lifecycle: understand the problem;
+  high-level design, skeletons, seed data, and integration tests; user-selected
+  detailed implementation with unit tests; feature-wide review and PR
+  preparation. Require approval between stages and a commit reminder/pause
+  after each validated implementation unit, with explicit continuation without
+  committing allowed.
+- Reuse each project's existing SPEC and document locations. When SPEC is
+  absent, investigate the codebase and record a concise, sourced environment
+  baseline. Permit documented expected-red integration tests at the skeleton
+  stage only, not as an exception to final readiness.
 - Use the configured review workflow with validation repeated after each
   actionable fix.
 - Maintain one workflow document, `docs/EDITOR_WORKFLOW.md`, covering the
@@ -122,6 +138,9 @@ repositories.
   GitHub trust entries, and idempotence in isolated temporary directories.
 - Every skill has valid front matter and the documented skill inventory matches
   the actual directories.
+- Validation checks the feature lifecycle sections and bundled planning
+  templates; installer tests compare generated plan/build/reviewer bodies with
+  their source skills for Copilot and OpenCode.
 - The pull-request readiness workflow requires a clean Codex review loop and
   does not depend on a third-party review service.
 - Pull requests run validation and dependency review on the latest commit.
@@ -132,5 +151,5 @@ repositories.
 
 ## Unresolved questions
 
-- Whether future installers should add more VS Code-specific automation beyond
-  repository instructions.
+None for the supported baseline. No additional installer automation or feature
+expansion is currently planned.
