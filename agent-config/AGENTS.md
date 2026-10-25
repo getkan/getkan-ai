@@ -85,7 +85,9 @@
   only if the ambiguity remains.
 - Treat an explicit sequence of actions as one authorized workflow. Complete
   every named step without pausing for repeated confirmation unless blocked or
-  a new materially risky choice is required.
+  a new materially risky choice is required. Feature development follows the
+  stage approvals and task checkpoints in the `ai-project-manager` skill;
+  a broad feature request does not waive those pauses.
 - Commit, push, pull-request, merge, release, deployment, and external-message
   actions require explicit authorization. When authorized, complete them rather
   than returning instructions or status only.
@@ -110,6 +112,9 @@
 ## Scope selection
 
 - Use skills for reusable task workflows.
+- For feature development, use the `ai-project-manager` skill for the
+  SPEC/ROADMAP/TASKS lifecycle, including when using `plan`, `build`, or
+  `reviewer` directly. Keep fixes and maintenance proportionate to their scope.
 - Treat files under `docs/` as references, not automatic instructions.
 
 ## Usage Logging

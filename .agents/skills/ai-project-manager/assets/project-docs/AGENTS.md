@@ -26,13 +26,24 @@ commands used by this repository.
 ## Validation
 
 - Run focused checks while implementing.
-- Run the complete required local gate before reporting done.
+- Run the complete required local gate before reporting the feature done.
+  Documented expected-red integration tests may satisfy stage 2 skeleton
+  criteria only; harness failures and regressions remain blockers.
 - Inspect the final status and diff.
 - Verify visible behavior with screenshots or equivalent rendered evidence.
 - Report skipped checks and unresolved manual testing explicitly.
 
 ## Documentation routing
 
-- Read `docs/SPEC.md` for requirements and acceptance criteria.
-- Read `docs/ROADMAP.md` for phase order and exit criteria.
-- Read `docs/TASKS.md` for current work and validation status.
+- Use `ai-project-manager` for feature development and its four-stage lifecycle.
+  Pause for approval between stages and for a commit reminder after each
+  validated implementation unit; continue without a commit only if instructed.
+- Read the existing SPEC for requirements, environment baseline, approved design,
+  and acceptance criteria. If absent, investigate the codebase and create a
+  concise SPEC before scaffolding.
+- Read ROADMAP for subprojects, dependencies, lifecycle stage, and approval gates.
+- Read TASKS for user-selected session work, tests, evidence, and commit status.
+
+Point these references to the repository's actual document locations when
+adapting this template. Preserve existing locations; default new files to
+`docs/` unless repository instructions say otherwise.

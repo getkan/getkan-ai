@@ -48,10 +48,27 @@ required_files=(
   ".github/workflows/validate.yml"
   "scripts/install.sh"
   "scripts/test-install.sh"
+  ".agents/skills/ai-project-manager/assets/project-docs/AGENTS.md"
+  ".agents/skills/ai-project-manager/assets/project-docs/SPEC.md"
+  ".agents/skills/ai-project-manager/assets/project-docs/ROADMAP.md"
+  ".agents/skills/ai-project-manager/assets/project-docs/TASKS.md"
 )
 
 for relative in "${required_files[@]}"; do
   [[ -f "$repo_root/$relative" ]] || fail "missing $relative"
+done
+
+for stage in \
+  "Stage 1: Understanding the problem" \
+  "Stage 2: High-level design and implementation" \
+  "Stage 3: Detailed design and implementation" \
+  "Stage 4: Review and pull-request preparation"; do
+  for lifecycle_file in \
+    ".agents/skills/ai-project-manager/SKILL.md" \
+    ".agents/skills/ai-project-manager/assets/project-docs/ROADMAP.md"; do
+    grep -Eq "^#{2,3} $stage$" "$repo_root/$lifecycle_file" ||
+      fail "$lifecycle_file is missing lifecycle section: $stage"
+  done
 done
 
 if [[ -n "$python_cmd" ]]; then

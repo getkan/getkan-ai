@@ -89,6 +89,16 @@ The `watch` skill runs a local development watch command in a dedicated
 background terminal, restarts it up to three times on process failure, and
 leaves reported errors alone until the user asks for a specific fix.
 
+The `ai-project-manager` skill owns the cross-project feature lifecycle:
+understand the problem; design and scaffold with seed data and integration
+tests; implement user-selected tasks with unit tests; review the whole feature
+and prepare PR evidence. Pause for approval between stages and for a commit
+reminder after each validated implementation unit. Reuse an existing SPEC;
+when missing, investigate and record a concise environment baseline. Expected-red
+tests are acceptable only for the stage 2 skeleton baseline, not final readiness.
+Its bundled SPEC, ROADMAP, TASKS, and AGENTS templates express that contract;
+existing project document locations and requirements remain canonical.
+
 ## Subagents: plan, build, reviewer
 
 `plan`, `build`, and `reviewer` are skills that also render as named
@@ -97,9 +107,11 @@ agent in addition to linking it as an ordinary skill:
 
 - `plan`: read-only investigation and phased planning. Never edits a file.
 - `build`: implements an authorized plan, including feature-specific tests.
-  Can call the `plan` subagent when no plan exists yet.
-- `reviewer`: reviews the current branch's changes and runs the complete
-  test suite. Never edits a file.
+  Can call the `plan` subagent when no plan exists yet. Feature work respects
+  the project-manager lifecycle and task/commit checkpoints.
+- `reviewer`: reviews the whole feature/base diff plus current changes and
+  reports the complete validation commands for the parent to run. Never
+  edits files or executes commands.
 
 The installer renders these into `~/.copilot/agents/<name>.agent.md` and
 `$OPENCODE_HOME/agent/<name>.md` (default `~/.config/opencode/agent/`) using

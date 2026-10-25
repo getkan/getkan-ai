@@ -1,33 +1,52 @@
 # Project roadmap
 
-## Phase 1: Foundation
+## Delivery outcomes and subprojects
 
-### Outcome
+Order reviewable outcomes and their dependencies. For complex projects, give
+each subproject a delivery stage and repeat the four-stage lifecycle below.
+Distinguish delivery order from lifecycle stage; omit unnecessary structure
+for small projects.
 
-Describe the working foundation delivered by this phase.
+## Current outcome
 
-### Included work
+- Scope and linked SPEC requirements:
+- Parent outcome and subproject dependencies:
+- Current lifecycle stage:
+- Risks, rollback needs, and unresolved decisions:
 
-- List the scoped deliverables.
+### Stage 1: Understanding the problem
 
-### Dependencies and risks
+- Outputs: functional/nonfunctional requirements, environment/datastore
+  constraints, measurable success, stack choices, and new integrations in SPEC.
+- Exit criteria: material decisions resolved and subprojects/dependencies named.
+- Evidence and next-stage approval: record user approval before stage 2 begins.
 
-- List prerequisites, migrations, destructive actions, and material risks.
+### Stage 2: High-level design and implementation
 
-### Exit criteria
+- Outputs: architecture and contracts in SPEC, high-level TASKS, skeletons,
+  deterministic seed data, and executable end-to-end integration tests.
+- Exit criteria: structural design and scaffold verified; expected-red
+  integration baseline documented. Harness failures and regressions block exit.
+- Evidence and next-stage approval: record user approval before stage 3 begins.
 
-- Define the observable result required to leave this phase.
+### Stage 3: Detailed design and implementation
 
-### Validation
+- Outputs: user-selected tasks implemented with unit tests and integration
+  coverage; design changes and validation evidence recorded.
+- Exit criteria: feature scope and applicable checks pass. Pause after each
+  validated unit for the commit checkpoint recorded in TASKS.
+- Evidence and next-stage approval: record user approval before stage 4 begins.
 
-- List automated checks and required manual testing.
+### Stage 4: Review and pull-request preparation
 
-## Phase 2: Core workflow
+- Outputs: feature/base review including committed tasks and worktree changes,
+  complete validation, addressed findings, and repository-template PR evidence.
+- Exit criteria: applicable integration tests and required gates pass; manual
+  tests, security, performance, deployment/rollback concerns are covered as
+  applicable. No stage 2 expected-failure exception applies to final readiness.
+- Handoff: stop; publication and deployment still need explicit authorization.
 
-Repeat the outcome, included work, dependencies and risks, exit criteria, and
-validation sections for the next ordered result.
+## Change record
 
-## Phase 3: Release readiness
-
-Include accessibility, security, performance, deployment, rollback, independent
-review, and documented manual testing when applicable.
+Record concise approved scope/design changes, affected outcomes, and reasons.
+Link to SPEC decisions and TASKS evidence rather than duplicating their detail.

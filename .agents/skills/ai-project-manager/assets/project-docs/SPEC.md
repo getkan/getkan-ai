@@ -1,5 +1,10 @@
 # Project specification
 
+Use the existing SPEC directly when present. Adapt this template only when a
+SPEC is missing; omit irrelevant sections rather than invent requirements.
+Scope feature/subproject additions explicitly without duplicating project-wide
+requirements.
+
 ## Problem
 
 Describe the problem this project solves and why it matters.
@@ -21,7 +26,21 @@ or interfaces.
 ## Architecture and data flow
 
 Describe major components, state ownership, storage, external services, and
-interfaces.
+interfaces. In stage 2, define table/schema structure, classes, method
+contracts, and component boundaries before detailed implementation.
+
+## Environment baseline and technology decisions
+
+For an existing codebase without a SPEC, investigate manifests (for example
+`package.json`), Dockerfiles, CI workflows, and relevant source/configuration.
+Record a concise baseline for future requests with source paths: language,
+framework, datastore, runtime/toolchain, environment, deployment, and existing
+validation commands. Distinguish observed facts from unknowns and proposals;
+never read secrets or infer undocumented production configuration.
+
+For new projects, record approved stack and deployment decisions before
+scaffolding. For new packages/services, record purpose, interfaces, constraints,
+and risks. Include concise technology learning resources when useful.
 
 ## Security and privacy
 
@@ -40,7 +59,15 @@ requirements.
 ## Acceptance criteria
 
 - Use observable, testable outcomes.
-- Include required automated and manual validation.
+- Link requirements to automated and manual checks and end-to-end success.
+- Define deterministic seed fixtures and executable integration tests in
+  stage 2. Record the baseline in TASKS, including expected failures caused by
+  stubs; require passing applicable checks before final feature completion.
+
+## Approved changes
+
+Record concise requirement/design decisions and their affected roadmap outcomes.
+Keep unresolved proposals separate from approved changes.
 
 ## Unresolved questions
 

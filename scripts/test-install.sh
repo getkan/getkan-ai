@@ -59,6 +59,16 @@ assert_link() {
     fail "unexpected link target: $target"
 }
 
+markdown_body() {
+  awk '
+    NR == 1 && $0 == "---" { frontmatter = 1; next }
+    frontmatter && $0 == "---" { frontmatter = 0; next }
+    frontmatter { next }
+    !body && /^[[:space:]]*$/ { next }
+    { body = 1; print }
+  ' "$1"
+}
+
 mkdir -p "$test_codex_home"
 mkdir -p "$test_github_repo/.git"
 mkdir -p "$test_copilot_agents_home"
@@ -291,6 +301,18 @@ grep -Fqx 'mode: all' "$installed_build_opencode_agent" ||
   fail "generated OpenCode build agent is missing mode: all"
 grep -Fq '^tools:' "$installed_build_opencode_agent" &&
   fail "generated OpenCode build agent should not restrict tools"
+
+for subagent in plan build reviewer; do
+  source_skill="$repo_root/.agents/skills/$subagent/SKILL.md"
+  for generated_agent in \
+    "$test_copilot_agents_home/$subagent.agent.md" \
+    "$test_opencode_home/agent/$subagent.md"; do
+    [[ -f "$generated_agent" && ! -L "$generated_agent" ]] ||
+      fail "expected generated agent file: $generated_agent"
+    diff -u <(markdown_body "$source_skill") <(markdown_body "$generated_agent") ||
+      fail "generated agent body differs from source skill: $generated_agent"
+  done
+done
 
 shopt -s nullglob
 vscode_agent_backups=("$test_codex_home"/backups/getkan-ai-*/copilot/agents/getkan-ai.agent.md)

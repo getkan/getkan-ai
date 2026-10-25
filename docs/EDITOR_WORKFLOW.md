@@ -21,15 +21,20 @@ is.
 | --- | --- |
 | `AGENTS.md` | Maintenance instructions for this repository |
 | `agent-config/AGENTS.md` | Portable instructions shared by Codex and Copilot |
-| `SPEC.md` | Product and technical requirements and acceptance criteria |
-| `ROADMAP.md` | Ordered outcomes, dependencies, risks, and exit criteria |
-| `TASKS.md` | Current actionable work and validated status |
+| `SPEC.md` | Canonical requirements, environment baseline, technology decisions, high-level design, and acceptance criteria |
+| `ROADMAP.md` | Delivery outcomes/subprojects, dependencies, lifecycle stage, risks, approval gates, and changes |
+| `TASKS.md` | High-level work refined into user-selected tasks, tests, evidence, status, and commit checkpoints |
 | `.agents/skills/` | Reusable workflows shared with all clients, including `plan`, `build`, and `reviewer` |
 | `agent-config/subagents/<name>.config.json` | Client mode and tool permissions for each subagent |
 | `docs/` | Repository-local reference material loaded by reference |
 
 Shared concepts:
 
+- **Planning documents**: reuse an existing SPEC directly and preserve existing
+  document locations. If SPEC is absent, investigate manifests, Dockerfiles,
+  CI workflows, and relevant source/configuration; record a concise, sourced
+  environment baseline for future requests. Use `docs/` for new documents
+  unless repository instructions specify otherwise.
 - **Source of truth**: `agent-config/` holds instructions and rules shared by
   Codex and Copilot, plus client-specific Codex and OpenCode configuration.
   `.agents/skills/` holds reusable workflows shared by all three clients.
@@ -185,7 +190,8 @@ Do not hand-edit a rendered `~/.copilot/agents/*.agent.md` or
 2. **`build`** implements one authorized phase at a time, adds
    feature-specific tests, and runs focused validation after each phase. If no
    plan exists yet, it produces one first (calling `plan`, where the client
-   supports that).
+   supports that). For features, it follows `ai-project-manager`: pause for
+   stage approval and after each validated unit for the commit checkpoint.
 3. **`reviewer`** inspects the resulting diff and reports defects, false
    positives, and the complete validation commands for you or the parent agent
    to run. It never edits a file or runs commands.
@@ -239,9 +245,11 @@ response before authorizing any edit.
 
 3. Restart VS Code. In Copilot Chat, confirm the agent picker lists `plan`,
    `build`, `reviewer`, `getkan-ai`, and `control-ai`.
-4. In each project, create or adopt `AGENTS.md`, `docs/SPEC.md`,
-   `docs/ROADMAP.md`, and `docs/TASKS.md` with `$ai-project-manager` (Codex)
-   or by asking the `getkan-ai` agent to use the `ai-project-manager` skill.
+4. In each project, create or adopt `AGENTS.md` and locate and reuse the existing
+   SPEC, ROADMAP, and TASKS at their actual paths with `$ai-project-manager`
+   (Codex), or ask the `getkan-ai` agent to use that skill. Create missing
+   planning documents under `docs/` unless repository instructions specify
+   otherwise; do not create competing copies of existing documents.
 
 ### Window layout
 
@@ -258,17 +266,23 @@ the migration in section 5 mechanical.
 ### Daily loop
 
 1. **Orient.** Ask the `getkan-ai` agent, "What is the current phase and the
-   next open task?" It answers from `docs/TASKS.md` and `docs/ROADMAP.md`.
+   next open task?" It answers from TASKS and ROADMAP at the project's actual
+   document locations.
 2. **Branch.** `git switch -c <type>/<short-name>`.
 3. **Plan.** Select `plan` and describe the task with acceptance criteria.
    Read the phased plan. Correct it before approving.
-4. **Build.** Select `build` and authorize one phase at a time. Review each
-   phase's diff in the Source Control view before authorizing the next.
-5. **Review.** Select `reviewer`. It reports defects and the complete
+4. **Build.** Select `build` for the approved lifecycle stage and user-selected
+   session tasks. Review each unit's diff and validation. At its commit
+   reminder, commit or explicitly instruct continuation without committing.
+   Approve each next lifecycle stage separately.
+5. **Review.** Select `reviewer`. It inspects the feature against its base,
+   including committed tasks and current changes, and reports defects and
    validation commands. Run them in Terminal 3.
 6. **Codex review gate.** In Terminal 1, run `codex review --uncommitted` and
    follow the review loop in section 6.
-7. **Record.** Update `docs/TASKS.md` only after validation passes.
+7. **Record.** Update TASKS after stage-specific criteria pass. Stage 2
+   expected-red integration tests require explicit evidence, not a claim of
+   feature completion.
 8. **Publish.** Commit, push, and open a ready-for-review pull request using
    the repository template, only when you decide the work is ready.
 
@@ -440,6 +454,57 @@ VS Code.
 
 ## 6. Complete lifecycle
 
+### Four-stage feature development
+
+The `ai-project-manager` skill defines the cross-project contract. These stages
+apply to feature development, not every maintenance edit. Keep planning-only
+requests and the `plan`/`reviewer` agents read-only: propose changes rather than
+creating documents or skeletons. Authorized editing is a separate action mode.
+
+1. **Understanding the problem.** Establish functional/nonfunctional
+   requirements, environmental constraints, datastore needs, non-goals, and
+   measurable success in SPEC. Reuse the existing SPEC; if absent, investigate
+   the codebase and record its environment concisely, citing evidence and
+   unknowns without reading secrets. For new projects, decide language,
+   framework, datastore, environment, and deployment before scaffolding.
+   Define new packages/services here. Update SPEC and ROADMAP. For complex
+   projects, identify subprojects as roadmap delivery stages with dependencies
+   and repeat the lifecycle for each. **Stop for stage 2 approval.**
+2. **High-level design and implementation.** Define components, data flow,
+   tables, classes, method contracts, and end-to-end acceptance criteria.
+   Update SPEC/ROADMAP and create high-level TASKS. Use standard scaffolding
+   tools, structural model files, interfaces, and explicit stubs; do not
+   implement full business logic or detailed SQL/method behavior. Create
+   deterministic seed fixtures and executable integration tests before detailed
+   implementation. Run them and record expected failures from stubs. These
+   failures are acceptable at this stage; broken test infrastructure or
+   unrelated regressions are not. Do not disable assertions or bypass commit/CI
+   policy. **Stop for stage 3 approval.**
+3. **Detailed design and implementation.** The user selects work-session
+   tasks. Refine detailed SQL and methods, implement one reviewable unit at a
+   time, and write unit tests alongside each step. Run focused unit/integration
+   checks and record evidence and approved design changes. After each validated
+   unit, **remind the user to commit and stop before the next task**. Resume
+   after a confirmed commit or explicit instruction to continue without one.
+   Never stage or commit implicitly. When feature scope and checks are complete,
+   **stop for stage 4 approval.**
+4. **Review and pull-request preparation.** Review the entire feature against
+   its verified base, including committed work and current changes. Run complete
+   relevant validation, integration tests, and required review gates. Resolve
+   findings, check SPEC/ROADMAP/TASKS coverage, and prepare PR evidence using the
+   repository template. Stage 2 expected failures do not excuse final failures.
+   **Stop for handoff; publishing requires explicit authorization.**
+
+A roadmap delivery outcome may span all four lifecycle stages. A session task
+is a smaller selected unit within stage 3. Do not infer stage approval from a
+broad feature request, or permission to provision, migrate production data, or
+deploy from a technology decision.
+
+### Validation and publication gates
+
+The following checks support the lifecycle above; they do not authorize
+crossing its stage or task checkpoints.
+
 1. Install this repository's shared instructions, configuration, rules, and
    reusable skills for each client.
 2. Inspect the real repository, branch, worktree, architecture, runtime paths,
@@ -451,16 +516,25 @@ VS Code.
 6. Break the current phase into reviewable work in `TASKS.md`.
 7. Use `plan` (or `$ai-project-manager`) to produce a requirement-linked plan
    with automated and manual validation.
-8. Stop for plan approval when the user reserved that checkpoint.
+8. For features, stop for approval at every lifecycle stage transition.
 9. Implement one approved phase with `build`, run focused checks, and inspect
    the diff.
-10. Run `reviewer` and the complete local gate; update task status only after
-    it passes.
+10. Run `reviewer` and the complete local gate for final readiness. Record
+    stage-specific task evidence, including the limited stage 2 exception above.
 11. Run the built-in Codex review:
 
     ```bash
     codex review --uncommitted
     ```
+
+    When tasks have already been committed, also review the whole feature:
+
+    ```bash
+    codex review --base <verified-base>
+    ```
+
+    Inspect committed changes plus staged/unstaged and relevant untracked
+    files; an empty uncommitted diff is not a completed feature review.
 
 12. Verify every finding against the current diff. Fix only actionable
     defects, rerun affected validation, and repeat `codex review --uncommitted`
@@ -528,21 +602,27 @@ Example: a REST controller for an `orders` resource in an existing service.
 
    Check the plan names a concrete existing controller to mirror, the routes,
    status codes, and the test command.
-3. `build`, one phase at a time:
-   - Phase 1: schemas or DTOs and validation.
-   - Phase 2: controller and route registration.
-   - Phase 3: unit tests for the controller, plus an integration test through
-     the router.
+3. Use `ai-project-manager` with `build`, pausing for approval between stages:
+   - Stage 1: use the service's SPEC or investigate its environment if missing;
+     record controller requirements and integration choices.
+   - Stage 2: define DTOs/contracts, controller/service skeletons, seed orders,
+     and an executable integration test through the router. Record expected
+     failures before implementing behavior.
+   - Stage 3: implement user-selected controller/service tasks with unit tests
+     alongside each step. Validate each unit, remind the user to commit, and
+     pause before the next task.
 4. Run the service in the `run` window and exercise one endpoint with `curl`
    to confirm wiring, not just tests.
-5. `reviewer`, then `codex review --uncommitted`.
+5. After stage 4 approval, `reviewer`, then `codex review --uncommitted` and
+   `codex review --base <verified-base>` for already committed feature tasks.
 6. Update API docs or OpenAPI spec if the project keeps one.
 
 ### 7.2 Create a new microservice
 
-1. Decide first, before any agent work: language and framework, how the
-   service is deployed, how it authenticates, and who calls it. Record these
-   in the new service's `docs/SPEC.md`.
+1. Use `ai-project-manager` for stage 1: decide language/framework, datastore,
+   deployment environment, authentication, callers, constraints, and measurable
+   success with the user. Record SPEC and ROADMAP before scaffolding; pause
+   for stage 2 approval.
 2. Create the repository under `~/github`, then run `./scripts/install.sh`
    from this repository so Codex trusts it.
 3. Bootstrap planning documents with `$ai-project-manager` (Codex) or the
@@ -551,21 +631,24 @@ Example: a REST controller for an `orders` resource in an existing service.
 4. `plan`:
 
    ```text
-   Plan phase 1 of this service from docs/SPEC.md: project skeleton using
-   the framework's official generator, health and readiness endpoints,
-   structured logging, configuration from environment variables, a
-   Dockerfile, a test harness, and CI that runs lint and tests. List the
-   exact validation commands.
+   Plan stage 2 from docs/SPEC.md: a skeleton using the official generator,
+   contracts/stubs for health and readiness, logging and configuration,
+   a Dockerfile, test harness, seed fixtures, integration tests, and CI.
+   Defer full endpoint behavior to stage 3. List exact validation commands
+   and expected failures from unimplemented behavior. Do not edit files.
    ```
 
-5. `build` phase 1. Prefer the framework's scaffolding command over
-   hand-written boilerplate.
-6. Verify for real: build the container, run it, and `curl` the health
-   endpoint.
+5. `build` stage 2 within approved scope. Prefer the framework's scaffolding
+   command over hand-written boilerplate. Run integration tests and record
+   the skeleton baseline; pause for stage 3 approval.
+6. Implement user-selected stage 3 tasks with unit tests alongside each step
+   and commit reminders between tasks. Verify implemented behavior for real:
+   build the container, run it, and `curl` the health endpoint.
 7. Add `.github/workflows`, Dependabot, and CodeQL per the security baseline in
    section 6.
-8. Later phases (first domain endpoint, persistence, messaging) each follow
-   workflow 7.1.
+8. After stage 4 approval, review the whole feature and prepare PR evidence.
+   Later subprojects (domain endpoint, persistence, messaging) repeat the
+   lifecycle with their own approval gates.
 
 tmux tip: run `docker compose up` or the dev server in `run:left`, tests in
 `run:right`, and the agent in `agent`.
@@ -586,6 +669,12 @@ tmux tip: run `docker compose up` or the dev server in `run:left`, tests in
 4. `reviewer`, then `codex review --uncommitted`.
 
 ### 7.4 Frontend or UI change
+
+For a new UI feature, follow the four-stage lifecycle in section 6: requirements
+and approval; component contracts/skeletons, seed fixtures and integration
+tests and approval; user-selected implementation tasks with unit tests and
+commit checkpoints; approval for feature-wide review and PR preparation.
+The following editor/browser steps support that lifecycle, not bypass it.
 
 1. Start the dev server in `run:left` with the `watch` skill.
 2. `plan` the change, naming components, styles, and states (empty, loading,
