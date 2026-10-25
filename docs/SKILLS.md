@@ -98,6 +98,10 @@ when missing, investigate and record a concise environment baseline. Expected-re
 tests are acceptable only for the stage 2 skeleton baseline, not final readiness.
 Its bundled SPEC, ROADMAP, TASKS, and AGENTS templates express that contract;
 existing project document locations and requirements remain canonical.
+Each feature/project has its own four-stage lifecycle. ROADMAP tracks multiple
+entries over time, including concurrent entries at different stages, with
+independent approvals and evidence linked by feature/project ID across SPEC
+and TASKS. Completing one entry does not advance the others.
 
 ## Subagents: plan, build, reviewer
 

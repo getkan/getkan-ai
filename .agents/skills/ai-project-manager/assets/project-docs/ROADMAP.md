@@ -1,17 +1,27 @@
 # Project roadmap
 
-## Delivery outcomes and subprojects
+## Feature/project index
 
-Order reviewable outcomes and their dependencies. For complex projects, give
-each subproject a delivery stage and repeat the four-stage lifecycle below.
-Distinguish delivery order from lifecycle stage; omit unnecessary structure
-for small projects.
+Maintain one row per feature, project, or subproject using a stable identifier.
+Each entry goes through all four stages independently; entries may be active
+at different stages concurrently. Preserve completed entries as history.
+Leave the index empty when no work is planned; do not invent features.
 
-## Current outcome
+| Feature/project ID | Outcome | Lifecycle stage | Status | Dependencies | Next approval |
+| --- | --- | --- | --- | --- | --- |
 
+## Feature/project lifecycle
+
+Repeat this entire section, including all four stage subsections, for each
+entry in the index. Delivery order is distinct from lifecycle stage. Approvals,
+blockers, and completion apply only to the named entry, never the whole roadmap.
+Update only the selected entry and explicitly affected dependencies.
+
+- Feature/project ID and name:
 - Scope and linked SPEC requirements:
 - Parent outcome and subproject dependencies:
 - Current lifecycle stage:
+- Status and next-stage approval:
 - Risks, rollback needs, and unresolved decisions:
 
 ### Stage 1: Understanding the problem

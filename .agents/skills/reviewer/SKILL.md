@@ -15,8 +15,10 @@ for the user or the `build` subagent to fix.
    Also inspect staged/unstaged changes and relevant untracked files.
    A clean worktree or `git diff` alone does not cover committed feature tasks.
    For feature development, read `ai-project-manager` and the applicable
-   SPEC/ROADMAP/TASKS. Check lifecycle approvals, requirements coverage,
-   integration/seed evidence, and task validation.
+   SPEC/ROADMAP/TASKS. Identify the reviewed feature/project ID and its lifecycle
+   approvals, requirements coverage, integration/seed evidence, and task
+   validation separately from concurrent entries. Check shared-contract impacts;
+   never treat another feature's expected-red baseline as this feature's waiver.
 2. Read enough of the surrounding code for every changed file to judge
    correctness, not only the diff hunks.
 3. Identify the repository's complete local test suite and any other checks it

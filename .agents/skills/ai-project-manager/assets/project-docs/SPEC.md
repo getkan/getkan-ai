@@ -3,7 +3,10 @@
 Use the existing SPEC directly when present. Adapt this template only when a
 SPEC is missing; omit irrelevant sections rather than invent requirements.
 Scope feature/subproject additions explicitly without duplicating project-wide
-requirements.
+requirements. Use the same feature/project identifiers as ROADMAP and TASKS
+to separate requirements, design, acceptance criteria, and approved changes
+for sequential or concurrent features. Preserve other features' scope and
+record shared contracts and cross-feature dependencies explicitly.
 
 ## Problem
 

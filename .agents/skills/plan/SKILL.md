@@ -18,10 +18,12 @@ repository or any system or service state.
 3. Identify the affected files, call sites, dependencies, risks, and any
    unresolved decision.
    For feature development, read the `ai-project-manager` skill and relevant
-   SPEC, ROADMAP, and TASKS at their existing locations. Identify the current
-   lifecycle stage and approval evidence. If SPEC is missing, investigate
-   manifests, Dockerfiles, CI workflows, and source/configuration and propose
-   a concise, sourced environment baseline; never create it in read-only mode.
+   SPEC, ROADMAP, and TASKS at their existing locations. Identify the selected
+   feature/project ID, its lifecycle stage and approval evidence independently
+   of concurrent entries, and cross-feature dependencies. If SPEC is missing,
+   investigate manifests, Dockerfiles, CI workflows, and source/configuration
+   and propose a concise, sourced environment baseline; never create it in
+   read-only mode.
 4. Break the work into reviewable phases. For each phase, state its goal,
    the files it touches, the approach, and the validation command that will
    prove it.

@@ -12,8 +12,10 @@ description: Implement an authorized plan, including feature-specific tests. Use
 2. Read every file the plan touches, and the nearby callers or consumers,
    before changing it.
    For feature development, read the `ai-project-manager` skill and existing
-   SPEC/ROADMAP/TASKS. Establish the current lifecycle stage, prerequisite
-   evidence, stage approval, and user-selected session tasks before editing.
+   SPEC/ROADMAP/TASKS. Establish the selected feature/project ID, its lifecycle
+   stage, prerequisite evidence, stage approval, and user-selected session
+   tasks before editing. Concurrent entries have independent approvals and
+   checkpoints; preserve their state and shared-contract dependencies.
 3. Implement one reviewable phase at a time, matching existing project
    patterns, naming, and style instead of introducing a new approach.
 4. Add or update feature-specific tests that cover the new behavior. Do not

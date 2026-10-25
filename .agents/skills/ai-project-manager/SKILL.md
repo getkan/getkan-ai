@@ -39,20 +39,42 @@ repository instructions specify otherwise. Keep feature/subproject scope clear
 within the canonical documents; split child documents only when complexity
 warrants it and link them from the parent. Do not impose a new directory layout.
 
+## Concurrent feature lifecycles
+
+Every feature, project, or subproject has its own instance of all four stages.
+ROADMAP is a growing collection of these lifecycles, not one global four-stage
+sequence. Features may proceed sequentially or concurrently at different stages.
+
+- Give each entry a stable name or identifier shared by SPEC and TASKS. Track
+  its stage, status, dependencies, exit evidence, and next-stage approval
+  separately. Retain completed entries as history when new features are added.
+- Scope requirements/design in SPEC and tasks, test baselines, validation,
+  and commit checkpoints in TASKS to that entry. Keep shared requirements
+  canonical rather than duplicating them.
+- Advancing, approving, blocking, or completing one feature never changes
+  another's state or grants approval for it. A stage 2 expected-red baseline
+  belongs only to its feature; it cannot excuse regressions in another feature.
+- Before acting, identify the user-selected entry and session tasks; clarify
+  materially ambiguous scope rather than picking a feature automatically.
+  Parallel roadmap entries do not authorize parallel agents or extra work.
+- Record cross-feature dependencies and shared schema/interface impacts.
+  Preserve unrelated entries when updating shared documents; reconcile
+  conflicting edits rather than overwriting another feature's progress.
+
 ## Entry and authorization
 
 1. Inspect applicable instructions, the active branch, current changes, relevant
    code, tests, and existing planning documents. Preserve unrelated changes.
-2. Identify the feature or subproject, current lifecycle stage, evidence of
+2. Identify the selected feature/project entry, its lifecycle stage, evidence of
    completed prerequisites, and approved session scope. Do not repeat completed
    stages unnecessarily; ask about missing decisions or approval evidence.
 3. Separate action mode from lifecycle stage. **Plan** mode and the `plan`
    subagent remain read-only: propose document updates or skeletons, never
    create them. Setup/Implement modes may edit only within authorized scope.
-4. At every stage exit, summarize outputs, checks, and blockers; record the
-   approval checkpoint when editing is authorized, request approval for the
-   next stage, and stop. A broad feature request or list of future tasks is
-   not approval to cross a stage boundary.
+4. At every stage exit for that entry, summarize outputs, checks, and blockers;
+   record the approval checkpoint when editing is authorized, request approval
+   for the next stage, and stop. A broad feature request or list of future
+   tasks is not approval to cross a stage boundary.
 
 ## Stage 1: Understanding the problem
 

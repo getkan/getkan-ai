@@ -71,6 +71,16 @@ for stage in \
   done
 done
 
+grep -Fqx '## Concurrent feature lifecycles' \
+  "$repo_root/.agents/skills/ai-project-manager/SKILL.md" ||
+  fail "project-manager skill is missing per-feature lifecycle guidance"
+grep -Fqx '## Feature/project index' \
+  "$repo_root/.agents/skills/ai-project-manager/assets/project-docs/ROADMAP.md" ||
+  fail "ROADMAP template is missing the feature/project index"
+grep -Fqx '## Feature/project lifecycle' \
+  "$repo_root/.agents/skills/ai-project-manager/assets/project-docs/ROADMAP.md" ||
+  fail "ROADMAP template is missing the repeatable feature/project lifecycle"
+
 if [[ -n "$python_cmd" ]]; then
   for config_file in "$repo_root"/agent-config/*.toml; do
     "$python_cmd" -c 'import pathlib, sys; tomllib = __import__("tomllib" if sys.version_info >= (3, 11) else "tomli"); tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' "$config_file" ||

@@ -496,7 +496,17 @@ creating documents or skeletons. Authorized editing is a separate action mode.
    **Stop for handoff; publishing requires explicit authorization.**
 
 A roadmap delivery outcome may span all four lifecycle stages. A session task
-is a smaller selected unit within stage 3. Do not infer stage approval from a
+is a smaller selected unit within stage 3. Each feature/project repeats all four
+stages independently. ROADMAP keeps an index and a lifecycle record per entry,
+retaining completed features while new ones start; concurrent features may be
+at different stages. Link SPEC requirements and TASKS evidence with the same
+feature/project ID. Scope approvals, blockers, expected-red baselines, and
+commit checkpoints to that entry, not a global project stage. Before acting,
+identify the user-selected feature and preserve other entries; track shared
+interfaces and cross-feature dependencies explicitly. Concurrent entries do not
+authorize extra work or parallel agents.
+
+Do not infer stage approval from a
 broad feature request, or permission to provision, migrate production data, or
 deploy from a technology decision.
 
