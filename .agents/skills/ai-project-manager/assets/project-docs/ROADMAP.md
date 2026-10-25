@@ -12,10 +12,17 @@ Leave the index empty when no work is planned; do not invent features.
 
 ## Feature/project lifecycle
 
-Repeat this entire section, including all four stage subsections, for each
-entry in the index. Delivery order is distinct from lifecycle stage. Approvals,
-blockers, and completion apply only to the named entry, never the whole roadmap.
-Update only the selected entry and explicitly affected dependencies.
+Replace this heading with `## <actual project name>` and repeat the named
+section, including all four stage subsections, for each entry in the index.
+Keep the index table above all project sections. Each project has its own
+level-two heading; stages, completion, risks, and history belong at level three
+or deeper within that section. Keep completed setup and subsequent features in
+separate named sections, not a combined "setup and next feature" section.
+Remove these template instructions when adapting the roadmap.
+
+Delivery order is distinct from lifecycle stage. Approvals, blockers, and
+completion apply only to the named entry, never the whole roadmap. Update only
+the selected entry and explicitly affected dependencies.
 
 - Feature/project ID and name:
 - Scope and linked SPEC requirements:
@@ -56,7 +63,7 @@ Update only the selected entry and explicitly affected dependencies.
   applicable. No stage 2 expected-failure exception applies to final readiness.
 - Handoff: stop; publication and deployment still need explicit authorization.
 
-## Change record
+### Change record
 
 Record concise approved scope/design changes, affected outcomes, and reasons.
 Link to SPEC decisions and TASKS evidence rather than duplicating their detail.

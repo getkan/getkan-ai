@@ -67,6 +67,7 @@ clear `name` and `description`.
 - `python`
 - `react`
 - `reformat`
+- `review-commit`
 - `reviewer`
 - `svelte`
 - `take-note`
@@ -80,6 +81,11 @@ when this list and the skill directories drift apart.
 
 The `reformat` skill normalizes pasted or dictated text into clean Markdown
 without changing its words, punctuation, links, code, or meaning.
+
+The `review-commit` skill reviews and validates selected changes, then creates
+a local commit when no user action is needed. It stops for actionable defects,
+unclear scope, unresolved decisions, or failed required checks, preserves
+unrelated work, and does not push or publish.
 
 The `md-to-pdf` skill uses its bundled Pandoc/Chromium converter to export one
 Markdown file or combine ordered Markdown chapters into a printable PDF,

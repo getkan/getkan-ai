@@ -48,6 +48,13 @@ sequence. Features may proceed sequentially or concurrently at different stages.
 - Give each entry a stable name or identifier shared by SPEC and TASKS. Track
   its stage, status, dependencies, exit evidence, and next-stage approval
   separately. Retain completed entries as history when new features are added.
+- Put the ROADMAP index table before the project sections. Give every feature,
+  project, or subproject its own level-two heading (`## <project name>`) below
+  the table, using its actual name rather than a shared lifecycle heading.
+  Nest that entry's stages, completion, risks, and history under level-three
+  or deeper headings. Keep a completed setup project and each later feature
+  in separate level-two sections; do not combine them under "setup and next
+  feature" or nest the next feature inside the completed project.
 - Scope requirements/design in SPEC and tasks, test baselines, validation,
   and commit checkpoints in TASKS to that entry. Keep shared requirements
   canonical rather than duplicating them.
@@ -192,7 +199,11 @@ task, including existing locations outside `docs/`. Before editing, also inspect
 
 If the user asks to create missing planning files, adapt the templates under
 `assets/project-docs/` to the repository. Remove irrelevant sections instead of
-leaving placeholders or inventing requirements.
+leaving placeholders or inventing requirements. Replace the ROADMAP template's
+generic lifecycle heading with the actual project name. When updating an
+existing multi-project roadmap, preserve its table rows, stable IDs, evidence,
+approvals, and completed history while applying the same per-project heading
+structure; do not restart or merge lifecycles merely to reformat them.
 
 ## Safety Rules
 
