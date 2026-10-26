@@ -1,6 +1,6 @@
 ---
 name: project
-description: Manage SPEC.md, ROADMAP.md, and TASKS.md through a four-stage feature-development lifecycle. Use when developing features, setting up a project, planning requirements or design, tracking user-selected tasks, or preparing feature-wide review and pull requests.
+description: Start read-only project sessions and guide setup, code research, bug fixes, and four-stage feature development. Use when the user invokes /project or asks to set up, explore, fix, or develop a project.
 ---
 
 # project
@@ -10,16 +10,72 @@ Keep project-specific requirements in project documents, not this skill.
 For fixes and maintenance, use proportionate planning and validation rather
 than forcing the full feature lifecycle onto unrelated small changes.
 
+## Begin a project session
+
+Whenever the user invokes `/project`, start with a read-only intake. Do not
+execute project code, run builds or tests, install dependencies, create or edit
+files, or begin any of the modes below during this first step.
+
+1. Identify the active project root. If it is not clear from the workspace,
+   ask the user which project to open.
+2. Read the applicable global agent instructions and local instructions,
+   including `AGENTS.md` and `CLAUDE.md` at the project root and along the
+   relevant path. Follow any instructions they reference.
+3. Read existing `SPEC.md`, `ROADMAP.md`, and `TASKS.md` where present, along
+   with other project references needed to understand the current state.
+4. Use only read-only inspection to note the current branch, worktree changes,
+   and relevant existing project context. Preserve all existing changes.
+5. Summarize the instructions and project state briefly, then present the
+   available modes below and ask which one the user wants. Stop here. Even if
+   the initial invocation names a mode, do not start that work until the user
+   continues after this intake.
+
+Do not run the project, tests, or other commands that execute project behavior
+during intake. Read-only commands used to inspect instructions and repository
+state are allowed.
+
 ## Choose a mode
 
-- **Setup:** Use when the repository is empty or the user explicitly requests
-  project scaffolding and planning documents.
-- **Plan:** Use when requirements, milestones, risks, or tasks need to be
-  created or clarified without implementation.
-- **Implement:** Use when the user authorizes work described by an existing
-  plan or task.
-- **Handoff:** Use when the user asks to prepare, review, publish, or merge
-  completed work. Publishing and merging still require explicit authorization.
+- **Setup project:** Create or adapt `AGENTS.md`, `CLAUDE.md`, `ROADMAP.md`,
+  `SPEC.md`, and `TASKS.md` for a new or newly documented project. The user
+  may choose the project folder or a separate folder outside the project as
+  the destination for these documents. Ask for the exact destination if it is
+  not provided. Do not overwrite existing documents; inspect and preserve them,
+  and clarify how to handle conflicts before replacing or relocating anything.
+  Files stored outside the project are not automatically discovered as local
+  agent instructions; explain this limitation and use them as the canonical
+  documentation location only if the user chooses it.
+- **Research:** Explore a complex codebase to explain its control flow,
+  responsibilities, and important relationships. Keep this mode read-only:
+  inspect source, tests, and documentation, but do not modify files or execute
+  project code. Report findings with file and symbol references, and distinguish
+  verified behavior from uncertainty.
+- **Feature:** Start a new feature lifecycle by identifying its scope and
+  adding a separate, stable entry to the roadmap, then follow the four stages
+  below. Keep the feature's requirements, tasks, approvals, and evidence
+  distinct from other roadmap entries.
+- **Bug/Issue Fix:** Investigate a reported defect by clarifying expected and
+  observed behavior, inspecting the relevant code and tests, and establishing
+  a reproducible failure where practical. Identify the root cause, add or
+  update a focused regression test, make a minimal fix, and run the smallest
+  relevant validation. Do not force this work through the feature lifecycle.
+  Ask a focused question when expected behavior or reproduction details are
+  materially ambiguous; report blockers instead of guessing or claiming a fix.
+
+The user can also request planning, implementation, or handoff within a chosen
+mode. Planning is read-only. Implementation requires user authorization, and
+publishing or merging always requires explicit authorization.
+
+## Document destinations
+
+Keep existing document locations canonical. For setup, place new documents in
+`docs/` by default unless repository instructions specify otherwise or the
+user chooses another destination. If the user chooses a separate folder
+outside the project, use the exact path they provide for all five setup
+documents. Do not create copies in the project as a convenience. Read and
+respect instructions at the chosen destination when available, and explain
+that external `AGENTS.md` and `CLAUDE.md` files may not be loaded automatically
+by tools working in the project.
 
 ## Document responsibilities
 

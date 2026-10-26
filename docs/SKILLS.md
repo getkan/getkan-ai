@@ -59,11 +59,9 @@ clear `name` and `description`.
 - `branch`
 - `build`
 - `commit`
-- `create-skill`
 - `css`
 - `deep`
 - `js`
-- `learn`
 - `md-to-pdf`
 - `plan`
 - `playwrite`
@@ -72,6 +70,7 @@ clear `name` and `description`.
 - `react`
 - `reformat`
 - `review`
+- `skill`
 - `svelte`
 - `take-note`
 - `tailwind`
@@ -84,6 +83,11 @@ when this list and the skill directories drift apart.
 
 The `reformat` skill normalizes pasted or dictated text into clean Markdown
 without changing its words, punctuation, links, code, or meaning.
+
+The `skill` workflow combines `create-skill` and `learn`: it creates or updates
+skills in the canonical skills folder, or records a narrow durable learning
+directive in portable instructions or the relevant skill. It replaces those
+two separate skills.
 
 The independent Git workflow skills replace `reviewer` and `review-commit`:
 
