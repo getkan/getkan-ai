@@ -1,6 +1,6 @@
 ---
 name: ask
-description: Answer user questions thoroughly without making changes. Use when a prompt is a question and needs context gathered from relevant repository instructions, code, tests, or documentation.
+description: "G-AI: Answer user questions thoroughly without making changes. Use when a prompt is a question and needs context gathered from relevant repository instructions, code, tests, or documentation."
 ---
 
 # ask
