@@ -26,9 +26,17 @@ files, or begin any of the modes below during this first step.
 4. Use only read-only inspection to note the current branch, worktree changes,
    and relevant existing project context. Preserve all existing changes.
 5. Summarize the instructions and project state briefly, then present the
-   available modes below and ask which one the user wants. Stop here. Even if
-   the initial invocation names a mode, do not start that work until the user
-   continues after this intake.
+   following four options as a numbered reminder, then ask which one the user
+   wants:
+
+   1. Setup project — create or adapt project instructions and planning docs.
+   2. Research — explain code flow and responsibilities without changing files.
+   3. Feature — follow the four-stage feature lifecycle.
+   4. Bug/Issue Fix — investigate and fix a reported defect with focused
+      validation.
+
+   Stop here. Even if the initial invocation names a mode, print all four
+   options and wait for the user to continue before starting that work.
 
 Do not run the project, tests, or other commands that execute project behavior
 during intake. Read-only commands used to inspect instructions and repository
@@ -50,10 +58,10 @@ state are allowed.
   inspect source, tests, and documentation, but do not modify files or execute
   project code. Report findings with file and symbol references, and distinguish
   verified behavior from uncertainty.
-- **Feature:** Start a new feature lifecycle by identifying its scope and
-  adding a separate, stable entry to the roadmap, then follow the four stages
-  below. Keep the feature's requirements, tasks, approvals, and evidence
-  distinct from other roadmap entries.
+- **Feature:** Start a new feature lifecycle by identifying its scope, then
+  record a separate, stable roadmap entry when Stage 1 is closed and proceed
+  through the four stages below. Keep the feature's requirements, tasks,
+  approvals, and evidence distinct from other roadmap entries.
 - **Bug/Issue Fix:** Investigate a reported defect by clarifying expected and
   observed behavior, inspecting the relevant code and tests, and establishing
   a reproducible failure where practical. Identify the root cause, add or
@@ -68,14 +76,15 @@ publishing or merging always requires explicit authorization.
 
 ## Document destinations
 
-Keep existing document locations canonical. For setup, place new documents in
-`docs/` by default unless repository instructions specify otherwise or the
-user chooses another destination. If the user chooses a separate folder
-outside the project, use the exact path they provide for all five setup
-documents. Do not create copies in the project as a convenience. Read and
-respect instructions at the chosen destination when available, and explain
-that external `AGENTS.md` and `CLAUDE.md` files may not be loaded automatically
-by tools working in the project.
+Keep existing document locations canonical. When setup targets the project
+folder, place `AGENTS.md` and `CLAUDE.md` at the project root unless repository
+instructions specify otherwise; preserve existing planning-document locations
+and put missing planning documents in `docs/` by default. If the user chooses a
+separate folder outside the project, use the exact path they provide for all
+five setup documents. Do not create copies in the project as a convenience.
+Read and respect instructions at the chosen destination when available, and
+explain that external `AGENTS.md` and `CLAUDE.md` files may not be loaded
+automatically by tools working in the project.
 
 ## Document responsibilities
 
