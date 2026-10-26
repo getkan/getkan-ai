@@ -683,6 +683,98 @@ subagent_opencode_tools_yaml() {
   printf '%s' "$tools_yaml"
 }
 
+remove_obsolete_skill_link() {
+  local target="$1"
+  local retired_skill="$2"
+  local canonical_source
+  local resolved_target
+
+  [[ -e "$target" || -L "$target" ]] || return 0
+
+  if [[ ! -L "$target" ]]; then
+    printf 'warning: unmanaged obsolete skill artifact left untouched: %s\n' "$target" >&2
+    return 0
+  fi
+
+  canonical_source="$(resolve_path "$repo_root/.agents/skills/$retired_skill")" || return 1
+  if ! resolved_target="$(resolve_path "$target")"; then
+    printf 'warning: obsolete skill link could not be verified and was left untouched: %s\n' \
+      "$target" >&2
+    return 0
+  fi
+
+  if [[ "$resolved_target" != "$canonical_source" ]]; then
+    printf 'warning: obsolete skill link is not a canonical Getkan AI link and was left untouched: %s\n' \
+      "$target" >&2
+    return 0
+  fi
+
+  run rm -- "$target"
+  printf 'removed obsolete managed skill link: %s\n' "$target"
+}
+
+remove_obsolete_generated_subagent() {
+  local target="$1"
+  local client="$2"
+  local backup="$3"
+  local expected_hash
+  local actual_hash
+
+  [[ -e "$target" || -L "$target" ]] || return 0
+
+  if [[ -L "$target" || ! -f "$target" ]]; then
+    printf 'warning: unmanaged obsolete agent artifact left untouched: %s\n' "$target" >&2
+    return 0
+  fi
+
+  if ! command -v sha256sum >/dev/null 2>&1; then
+    printf 'warning: obsolete agent could not be verified and was left untouched: %s\n' \
+      "$target" >&2
+    return 0
+  fi
+
+  # Exact renderer outputs from the retired reviewer at 3bd1347b39d94b9d5e5deb81abd08b601e07a95c.
+  # Unknown historical versions and user-modified files require manual cleanup.
+  case "$client" in
+    copilot)
+      expected_hash="8927abf67fa82fb053e27309ef677ae0457c4c8d937f1e375fe7ce2d97ed3ea7"
+      ;;
+    opencode)
+      expected_hash="ddd07cc996c79eabd933457c5f42c30fe97b04b3094fbfc846ed84b41af7be9f"
+      ;;
+    *)
+      printf 'error: unexpected obsolete agent client: %s\n' "$client" >&2
+      return 1
+      ;;
+  esac
+
+  actual_hash="$(sha256sum <"$target")"
+  actual_hash="${actual_hash%% *}"
+  if [[ "$actual_hash" != "$expected_hash" ]]; then
+    printf 'warning: obsolete agent is not a recognized historical generated reviewer and was left untouched: %s\n' \
+      "$target" >&2
+    return 0
+  fi
+
+  ensure_parent "$backup"
+  run mv -- "$target" "$backup"
+  printf 'removed obsolete generated agent: %s\n' "$target"
+}
+
+remove_obsolete_integrations() {
+  local retired_skill
+
+  for retired_skill in reviewer review-commit; do
+    remove_obsolete_skill_link "$agents_home/skills/$retired_skill" "$retired_skill"
+    remove_obsolete_skill_link "$copilot_skills_home/$retired_skill" "$retired_skill"
+  done
+
+  remove_obsolete_generated_subagent "$copilot_agents_home/reviewer.agent.md" copilot \
+    "$backup_root/copilot/agents/reviewer.agent.md"
+  remove_obsolete_generated_subagent "$opencode_home/agent/reviewer.md" opencode \
+    "$backup_root/opencode/agent/reviewer.md"
+}
+
 # Renders a VS Code custom-agent file for one subagent: client-specific
 # front matter (name, tools, invocability) followed by the skill's body.
 render_subagent_copilot_agent() {
@@ -753,6 +845,9 @@ link_managed_path "$shared_config_home/rules" "$codex_home/rules"
 
 for skill_dir in "$repo_root"/.agents/skills/*; do
   [[ -d "$skill_dir" ]] || continue
+  case "$(basename "$skill_dir")" in
+    reviewer|review-commit) continue ;;
+  esac
   link_managed_path "$skill_dir" "$agents_home/skills/$(basename "$skill_dir")"
 done
 
@@ -763,13 +858,18 @@ install_vscode_control_agent "$copilot_agents_home/control-ai.agent.md"
 
 for skill_dir in "$repo_root"/.agents/skills/*; do
   [[ -d "$skill_dir" ]] || continue
+  case "$(basename "$skill_dir")" in
+    reviewer|review-commit) continue ;;
+  esac
   link_copilot_path "$skill_dir" "$copilot_skills_home/$(basename "$skill_dir")"
 done
+
+remove_obsolete_integrations
 
 link_opencode_path "$shared_config_home/opencode.config.json" "$opencode_home/opencode.json"
 link_opencode_path "$shared_config_home/opencode.cli.json" "$opencode_home/cli.json"
 
-for subagent in ask plan build reviewer; do
+for subagent in ask plan build review; do
   source_skill="$repo_root/.agents/skills/$subagent/SKILL.md"
   subagent_config="$shared_config_home/subagents/$subagent.config.json"
   [[ -f "$source_skill" && -f "$subagent_config" ]] || continue

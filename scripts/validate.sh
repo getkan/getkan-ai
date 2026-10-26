@@ -37,7 +37,7 @@ required_files=(
   "agent-config/subagents/ask.config.json"
   "agent-config/subagents/plan.config.json"
   "agent-config/subagents/build.config.json"
-  "agent-config/subagents/reviewer.config.json"
+  "agent-config/subagents/review.config.json"
   "agent-config/rules/default.rules"
   "docs/AI_LAYOUT.md"
   ".github/copilot-instructions.md"
@@ -60,6 +60,13 @@ required_files=(
 for relative in "${required_files[@]}"; do
   [[ -f "$repo_root/$relative" ]] || fail "missing $relative"
 done
+
+actual_subagents="$(
+  find "$repo_root/agent-config/subagents" -maxdepth 1 -type f -name '*.config.json' \
+    -printf '%f\n' | sed 's/\.config\.json$//' | sort
+)"
+[[ "$actual_subagents" == $'ask\nbuild\nplan\nreview' ]] ||
+  fail "named subagent configs must be exactly ask, build, plan, and review"
 
 for stage in \
   "Stage 1: Understanding the problem" \

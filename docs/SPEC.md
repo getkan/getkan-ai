@@ -31,9 +31,11 @@ repositories.
 - Install a Copilot custom agent named `getkan-ai` that answers setup,
   workflow, requirement, roadmap, and task-status questions from repository
   markdown files.
-- Render the `ask`, `plan`, `build`, and `reviewer` skills as named subagents
+- Render the `ask`, `plan`, `build`, and `review` skills as named subagents
   for GitHub Copilot and OpenCode, enforcing a no-edit boundary on `ask`,
-  `plan`, and `reviewer` where the client supports tool permissions.
+  `plan`, and `review` where the client supports tool permissions.
+- Provide separate `branch`, `review`, `commit`, and `push-pr` skills that
+  run independently and chain only when the user explicitly requests it.
 - Trust the current user's `~/github` directory and every Git worktree
   discovered recursively beneath it on each installation.
 - Configure Zsh functions so `codex` and `opencode` load the local OpenRouter
@@ -63,7 +65,7 @@ repositories.
   actionable fix.
 - Maintain one workflow document, `docs/EDITOR_WORKFLOW.md`, covering the
   development lifecycle, the Codex, OpenCode, and VS Code Copilot client
-  reference, the `plan`/`build`/`reviewer` loop, a VS Code editor workflow, a
+  reference, the `plan`/`build`/`review` loop, a VS Code editor workflow, a
   staged Neovim and tmux migration guide, and sample task workflows.
 - Validate repository structure, configuration syntax, skill metadata,
   documentation consistency, and installer behavior.
@@ -75,7 +77,7 @@ repositories.
   and Copilot, Codex configuration, OpenCode configuration, and client-specific
   subagent settings.
 - `.agents/skills/` is the shared workflow source linked for Codex and Copilot;
-  the installer renders the `ask`, `plan`, `build`, and `reviewer` skills as
+  the installer renders the `ask`, `plan`, `build`, and `review` skills as
   OpenCode agents.
 - The installer renders `config.toml` with machine-specific exact trust entries
   while linking the other managed files.
@@ -84,9 +86,11 @@ repositories.
   `copilot-config/AGENT_CONTROL.md`.
 - `.agents/skills/` contains reusable workflows linked into `AGENTS_HOME`.
 - The same `.agents/skills/` directories are linked into `~/.copilot/skills`.
-- The `ask`, `plan`, `build`, and `reviewer` skills are additionally rendered
+- The `ask`, `plan`, `build`, and `review` skills are additionally rendered
   into `~/.copilot/agents/<name>.agent.md` and
   `$OPENCODE_HOME/agent/<name>.md` as named subagents.
+- `branch`, `commit`, and `push-pr` remain ordinary skills; these and `review`
+  are independent operations and are not chained without an explicit request.
 - `docs/` contains repository-local reference files loaded when needed.
   `docs/EDITOR_WORKFLOW.md` is the single workflow and client reference; it
   replaces the former `WORKFLOW.md`, `CLIENT_WORKFLOW.md`, and
@@ -139,8 +143,10 @@ repositories.
 - Every skill has valid front matter and the documented skill inventory matches
   the actual directories.
 - Validation checks the feature lifecycle sections and bundled planning
-  templates; installer tests compare generated plan/build/reviewer bodies with
+  templates; installer tests compare generated plan/build/review bodies with
   their source skills for Copilot and OpenCode.
+- Installer tests verify migration removes only canonical retired skill links
+  and generated reviewer agents, while preserving user-owned old artifacts.
 - The pull-request readiness workflow requires a clean Codex review loop and
   does not depend on a third-party review service.
 - Pull requests run validation and dependency review on the latest commit.

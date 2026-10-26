@@ -102,9 +102,9 @@ new shell after installation.
 - The managed `opencode` Zsh function loads the same environment variable
   from `.env`; no separate credential file is managed by this repository.
 
-## Subagents: ask, plan, build, reviewer
+## Subagents: ask, plan, build, review
 
-The `ask`, `plan`, `build`, and `reviewer` skills under `.agents/skills/` also
+The `ask`, `plan`, `build`, and `review` skills under `.agents/skills/` also
 render as named custom agents. Each subagent's client mode and permitted or
 denied tools live in a human-readable config file,
 `agent-config/subagents/<name>.config.json`, instead of being hardcoded in
@@ -120,7 +120,7 @@ denied tools live in a human-readable config file,
 
 - Target: `~/.copilot/agents/<name>.agent.md`, generated with a `tools` list
   taken from `copilotTools`. `ask` is limited to `read` and `search`; `plan`
-  and `reviewer` exclude `edit` and `execute`, enforcing their read-only
+  and `review` exclude `edit` and `execute`, enforcing their read-only
   boundaries.
 - Target: `$OPENCODE_HOME/agent/<name>.md` (default
   `~/.config/opencode/agent/`), generated with the config's `mode` and a
@@ -130,10 +130,23 @@ denied tools live in a human-readable config file,
   `opencode debug agents` against the installed OpenCode version.
 - Codex has no native per-agent tool-permission mechanism. Codex sessions
   discover these as ordinary skills (`.agents/skills/ask`,
-  `.agents/skills/plan`, `.agents/skills/build`, `.agents/skills/reviewer`)
+  `.agents/skills/plan`, `.agents/skills/build`, `.agents/skills/review`)
   and rely on each skill's own instructions to honor its tool boundary.
 - Rerun the installer after changing a skill body or a subagent config file
   to refresh the rendered agent files.
+
+The `branch`, `review`, `commit`, and `push-pr` skills are separate workflows.
+`review` is the only one of these rendered as a named subagent; `branch`,
+`commit`, and `push-pr` are installed as ordinary skills. Invoke each skill
+independently. Do not chain them unless the user explicitly requests that
+sequence.
+
+During migration, the installer removes `reviewer` and `review-commit` skill
+symlinks only when they resolve to this repository's retired canonical skill
+paths. It removes old generated `reviewer` agents only when their complete
+contents match a recorded historical renderer fingerprint. Customized or
+unrecognized historical files and unrelated links are preserved with a
+warning for manual cleanup; matching agents are backed up before removal.
 
 ## Shared Copilot installation
 

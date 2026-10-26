@@ -84,7 +84,7 @@ Read only the documents needed for the task:
 - `docs/AI_LAYOUT.md` for agent discovery and installation boundaries.
 - `docs/SKILLS.md` when creating or changing skills.
 - `docs/EDITOR_WORKFLOW.md` for the development lifecycle, Codex, OpenCode,
-  and VS Code Copilot client reference, the `plan`/`build`/`reviewer` loop,
+  and VS Code Copilot client reference,   the `plan`/`build`/`review` loop,
   the VS Code and Neovim/tmux editor workflow, and sample task workflows.
 - `docs/LOCAL_MODEL_INTEGRATION.md` when working on local model token
   optimization.

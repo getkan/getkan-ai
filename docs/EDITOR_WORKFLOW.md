@@ -5,7 +5,7 @@ configures. It covers:
 
 1. Project file roles and the shared installed configuration.
 2. Client reference for GitHub Copilot in VS Code, Codex, and OpenCode.
-3. The `plan` / `build` / `reviewer` loop in each client.
+3. The `plan` / `build` / `review` loop in each client.
 4. A suggested VS Code workflow.
 5. A staged migration to Neovim with tmux orchestrating everything.
 6. The complete lifecycle from specification to merge, including security and
@@ -25,7 +25,7 @@ is.
 | `SPEC.md` | Canonical requirements, environment baseline, technology decisions, high-level design, and acceptance criteria |
 | `ROADMAP.md` | Delivery outcomes/subprojects, dependencies, lifecycle stage, risks, approval gates, and changes |
 | `TASKS.md` | High-level work refined into user-selected tasks, tests, evidence, status, and commit checkpoints |
-| `.agents/skills/` | Reusable workflows shared with all clients, including `ask`, `plan`, `build`, and `reviewer` |
+| `.agents/skills/` | Reusable workflows shared with all clients, including `ask`, `plan`, `build`, `review`, `branch`, `commit`, and `push-pr` |
 | `agent-config/subagents/<name>.config.json` | Client mode and tool permissions for each subagent |
 | `docs/` | Repository-local reference material loaded by reference |
 
@@ -62,9 +62,9 @@ Pick a harness per task, not per project.
 
 | Harness | Model route | Strengths | Boundary enforcement |
 | --- | --- | --- | --- |
-| GitHub Copilot (VS Code Chat) | GitHub Copilot service | Inline completions, visual diffs, agent picker, browser tools | Tool-level: `ask` has only `read` and `search`; `plan` and `reviewer` have no `edit` or `execute` tool |
+| GitHub Copilot (VS Code Chat) | GitHub Copilot service | Inline completions, visual diffs, agent picker, browser tools | Tool-level: `ask` has only `read` and `search`; `plan` and `review` have no `edit` or `execute` tool |
 | Codex (OpenAI CLI) | OpenRouter via `~/.codex/config.toml` | `codex review --uncommitted`, `AGENTS.md` and skill discovery, plugins | Instruction-only; use `--sandbox read-only` for hard limits |
-| OpenCode | OpenRouter via `opencode.json` | Terminal-only, named agents with denied tools | Tool-level: `ask`, `plan`, and `reviewer` deny `edit`, `write`, `patch`, `bash`, `task` |
+| OpenCode | OpenRouter via `opencode.json` | Terminal-only, named agents with denied tools | Tool-level: `ask`, `plan`, and `review` deny `edit`, `write`, `patch`, `bash`, `task` |
 
 Notes:
 
@@ -102,7 +102,7 @@ codex plugin add <name>@<marketplace>   # declared in agent-config/plugins.toml
 ```
 
 Codex has no native concept of a named, tool-restricted subagent. `plan`,
-`build`, and `reviewer` are ordinary skills for Codex; invoke one by name (for
+`build`, and `review` are ordinary skills for Codex; invoke one by name (for
 example `$plan`) and Codex follows that skill's boundaries by instruction only.
 
 ### OpenCode
@@ -141,8 +141,7 @@ opencode debug config             # show the fully resolved configuration
 Every custom agent under `$OPENCODE_HOME/agent/*.md` is merged into the `agent`
 key of the resolved config automatically. `build` and `plan` use mode `all`
 because those names also identify OpenCode's built-in primary agents; making
-either subagent-only removes it from the TUI's primary-agent list. `reviewer`
-uses mode `subagent`. `plan` and `reviewer` deny `edit`, `write`, `patch`,
+either subagent-only removes it from the TUI's primary-agent list. `review` uses mode `subagent`. `plan` and `review` deny `edit`, `write`, `patch`,
 `bash` (no file writes or commands) and `task` (cannot invoke other
 subagents); `build` has no restrictions, so it can call `plan` when a task has
 no plan yet.
@@ -154,7 +153,7 @@ no plan yet.
 | Repository instructions (this repo only) | `.github/copilot-instructions.md` |
 | Custom agent: repository Q&A | `~/.copilot/agents/getkan-ai.agent.md` |
 | Custom agent: control/config | `~/.copilot/agents/control-ai.agent.md` |
-| Subagents | `~/.copilot/agents/<name>.agent.md` for `plan`, `build`, `reviewer` |
+| Subagents | `~/.copilot/agents/<name>.agent.md` for `plan`, `build`, `review` |
 | Skills | `~/.copilot/skills/<name>/SKILL.md` |
 
 `COPILOT_HOME` (default `~/.copilot`) overrides the install location. Each
@@ -169,11 +168,11 @@ user-invocable: true
 ---
 ```
 
-`plan` and `reviewer` have only `read`, `search`, and `todo`, so VS Code will
+`plan` and `review` have only `read`, `search`, and `todo`, so VS Code will
 not offer file-editing or command actions while either is selected. `build`
 adds `edit`, `execute`, and `agent` (so it can invoke the `plan` agent). To use
 one, open Copilot Chat, open the agent picker, and select `plan`, `build`,
-`reviewer`, `getkan-ai`, or `control-ai` by name.
+`review`, `getkan-ai`, or `control-ai` by name.
 
 ### Changing a subagent
 
@@ -186,7 +185,7 @@ one, open Copilot Chat, open the agent picker, and select `plan`, `build`,
 Do not hand-edit a rendered `~/.copilot/agents/*.agent.md` or
 `~/.config/opencode/agent/*.md` file; the next install overwrites it.
 
-## 3. The plan / build / reviewer loop
+## 3. The plan / build / review loop
 
 1. **`plan`** investigates the task and returns a phased plan. It never edits
    a file.
@@ -195,9 +194,17 @@ Do not hand-edit a rendered `~/.copilot/agents/*.agent.md` or
    plan exists yet, it produces one first (calling `plan`, where the client
    supports that). For features, it follows `project`: pause for
    stage approval and after each validated unit for the commit checkpoint.
-3. **`reviewer`** inspects the resulting diff and reports defects, false
-   positives, and the complete validation commands for you or the parent agent
-   to run. It never edits a file or runs commands.
+3. **`review`** inspects the resulting diff and reports defects, false
+   positives, and the validation commands for the caller to run. It never
+   edits a file or runs tests or validation commands.
+
+The `branch`, `review`, `commit`, and `push-pr` skills are independent
+operations. `branch` creates and switches to a local branch while preserving
+pending work; `review` reports findings and checks without applying fixes;
+`commit` creates a local commit for selected changes; and `push-pr` publishes
+the current branch and handles PR creation only when authorized. None invokes
+another skill automatically. Chain only the individual steps the user
+explicitly requests.
 
 Each step matches a skill in `.agents/skills/<name>/SKILL.md`; read that file
 for the exact boundaries and output format.
@@ -207,9 +214,9 @@ for the exact boundaries and output format.
 1. Select the `plan` agent and describe the task. Review the phased plan.
 2. Switch to `build` to implement approved phases (or ask `build` directly; it
    can invoke `plan` itself).
-3. Switch to `reviewer` and ask it to review the branch. Run the validation
+3. Switch to `review` and ask it to review the branch. Run the validation
    commands it reports.
-4. Address defects with `build`, then ask `reviewer` again until it reports no
+4. Address defects with `build`, then ask `review` again until it reports no
    actionable findings.
 
 ### In Codex
@@ -217,10 +224,10 @@ for the exact boundaries and output format.
 ```text
 $plan     Describe the task; read the returned plan before continuing.
 $build    Implement the approved plan and its tests.
-$reviewer Review the resulting diff and report validation commands.
+$review Review the resulting diff and report validation commands.
 ```
 
-The no-edit boundary for `$plan` and `$reviewer` is instruction-only. For a
+The no-edit boundary for `$plan` and `$review` is instruction-only. For a
 hard guarantee, run `$plan` in `codex --sandbox read-only` or review its
 response before authorizing any edit.
 
@@ -229,7 +236,7 @@ response before authorizing any edit.
 1. Start with `opencode run --agent plan "<task>"` (or switch agents inside the
    TUI).
 2. Once you approve the plan, switch to `--agent build`.
-3. Switch to `--agent reviewer` to inspect the diff and get the validation
+3. Switch to `--agent review` to inspect the diff and get the validation
    commands.
 4. Confirm resolved permissions with `opencode debug agents`.
 
@@ -247,7 +254,7 @@ response before authorizing any edit.
    ```
 
 3. Restart VS Code. In Copilot Chat, confirm the agent picker lists `plan`,
-   `build`, `reviewer`, `getkan-ai`, and `control-ai`.
+   `build`, `review`, `getkan-ai`, and `control-ai`.
 4. In each project, create or adopt `AGENTS.md` and locate and reuse the existing
    SPEC, ROADMAP, and TASKS at their actual paths with `$project`
    (Codex), or ask the `getkan-ai` agent to use that skill. Create missing
@@ -271,14 +278,15 @@ the migration in section 5 mechanical.
 1. **Orient.** Ask the `getkan-ai` agent, "What is the current phase and the
    next open task?" It answers from TASKS and ROADMAP at the project's actual
    document locations.
-2. **Branch.** `git switch -c <type>/<short-name>`.
+2. **Branch.** Use the independent `branch` skill when asked to create and
+   switch to a branch; the command form is `git switch -c <type>/<short-name>`.
 3. **Plan.** Select `plan` and describe the task with acceptance criteria.
    Read the phased plan. Correct it before approving.
 4. **Build.** Select `build` for the approved lifecycle stage and user-selected
    session tasks. Review each unit's diff and validation. At its commit
    reminder, commit or explicitly instruct continuation without committing.
    Approve each next lifecycle stage separately.
-5. **Review.** Select `reviewer`. It inspects the feature against its base,
+5. **Review.** Select `review`. It inspects the feature against its base,
    including committed tasks and current changes, and reports defects and
    validation commands. Run them in Terminal 3.
 6. **Codex review gate.** In Terminal 1, run `codex review --uncommitted` and
@@ -286,14 +294,14 @@ the migration in section 5 mechanical.
 7. **Record.** Update TASKS after stage-specific criteria pass. Stage 2
    expected-red integration tests require explicit evidence, not a claim of
    feature completion.
-8. **Publish.** Commit, push, and open a ready-for-review pull request using
-   the repository template, only when you decide the work is ready.
+8. **Publish.** `commit` and `push-pr` are separate skills. Invoke each only
+   when requested; opening a pull request also requires explicit authorization.
 
 ### When to use which harness inside VS Code
 
 - Inline completion and small edits: Copilot inline suggestions.
 - Multi-file feature with visual diff review and hard no-edit planning:
-  Copilot Chat with `plan` -> `build` -> `reviewer`.
+  Copilot Chat with `plan` -> `build` -> `review`.
 - Large refactor, long autonomous run, or a cheaper or different model:
   `codex` or `opencode` in the integrated terminal while you keep editing.
 - Terminal-only work with hard no-edit planning: OpenCode.
@@ -302,7 +310,7 @@ the migration in section 5 mechanical.
 ## 5. Migrating to Neovim with tmux
 
 The goal is to move the editor without changing the AI workflow. Skills,
-`AGENTS.md`, and the `plan` / `build` / `reviewer` loop stay the same; only
+`AGENTS.md`, and the `plan` / `build` / `review` loop stay the same; only
 the surface changes. Migrate in stages and keep VS Code available until each
 stage feels routine.
 
@@ -420,16 +428,16 @@ verification and Copilot Chat agent-picker workflows if you still want them.
 
 What changes for the AI harness:
 
-- **Copilot custom agents.** The `ask`, `plan`, `build`, and `reviewer` agents in
+- **Copilot custom agents.** The `ask`, `plan`, `build`, and `review` agents in
   `~/.copilot/agents/` are a VS Code Copilot Chat feature. Neovim Copilot
   plugins provide completions and chat, but do not load those agent files.
   In a terminal, use the GitHub Copilot CLI (`copilot`) if it is installed
   and supports custom agents in your version, or use the next two options.
 - **Codex** becomes the main harness. Invoke `$ask` for read-only questions,
-  `$plan`, `$build`, and `$reviewer` as skills in the `agent` window. Run
+  `$plan`, `$build`, and `$review` as skills in the `agent` window. Run
   planning with `codex --sandbox read-only` when you want a hard no-edit
   guarantee.
-- **OpenCode** provides the tool-enforced `ask` / `plan` / `build` / `reviewer`
+- **OpenCode** provides the tool-enforced `ask` / `plan` / `build` / `review`
   agents from the terminal.
 - **Review gate** is unchanged: `codex review --uncommitted`.
 
@@ -438,7 +446,7 @@ Final layout per project:
 ```text
 session <project>
   1:edit   nvim
-  2:agent  [codex: feature] | [opencode: reviewer]
+  2:agent  [codex: feature] | [opencode: review]
   3:run    [dev server]     | [tests]
   4:git    lazygit / gh
 ```
@@ -462,7 +470,7 @@ VS Code.
 
 The `project` skill defines the cross-project contract. These stages
 apply to feature development, not every maintenance edit. Keep planning-only
-requests and the `plan`/`reviewer` agents read-only: propose changes rather than
+requests and the `plan`/`review` agents read-only: propose changes rather than
 creating documents or skeletons. Authorized editing is a separate action mode.
 
 1. **Understanding the problem.** Establish functional/nonfunctional
@@ -533,7 +541,7 @@ crossing its stage or task checkpoints.
 8. For features, stop for approval at every lifecycle stage transition.
 9. Implement one approved phase with `build`, run focused checks, and inspect
    the diff.
-10. Run `reviewer` and the complete local gate for final readiness. Record
+10. Run `review` and the complete local gate for final readiness. Record
     stage-specific task evidence, including the limited stage 2 exception above.
 11. Run the built-in Codex review:
 
@@ -596,8 +604,8 @@ synchronized when requirements or architecture change.
 
 Each workflow lists the harness steps and the editor surface. Replace bracketed
 text. Prompts are written for Copilot Chat agents; for Codex, prefix with
-`$plan`, `$build`, or `$reviewer`; for OpenCode, use
-`opencode run --agent plan|build|reviewer`.
+`$plan`, `$build`, or `$review`; for OpenCode, use
+`opencode run --agent plan|build|review`.
 
 ### 7.1 Build a new controller
 
@@ -627,7 +635,7 @@ Example: a REST controller for an `orders` resource in an existing service.
      pause before the next task.
 4. Run the service in the `run` window and exercise one endpoint with `curl`
    to confirm wiring, not just tests.
-5. After stage 4 approval, `reviewer`, then `codex review --uncommitted` and
+5. After stage 4 approval, `review`, then `codex review --uncommitted` and
    `codex review --base <verified-base>` for already committed feature tasks.
 6. Update API docs or OpenAPI spec if the project keeps one.
 
@@ -680,7 +688,7 @@ tmux tip: run `docker compose up` or the dev server in `run:left`, tests in
 
 3. `build`: add the failing regression test first, confirm it fails, then
    apply the fix and confirm it passes.
-4. `reviewer`, then `codex review --uncommitted`.
+4. `review`, then `codex review --uncommitted`.
 
 ### 7.4 Frontend or UI change
 
@@ -697,7 +705,7 @@ The following editor/browser steps support that lifecycle, not bypass it.
    `tailwind`).
 4. Verify in a real browser with the `playwrite` skill, or Copilot browser
    tools in VS Code. Capture screenshots for the pull request.
-5. `reviewer`, then `codex review --uncommitted`.
+5. `review`, then `codex review --uncommitted`.
 
 UI verification is the main reason to keep VS Code installed after the Neovim
 migration.
@@ -710,7 +718,7 @@ migration.
 3. Prefer language tooling (LSP rename, `pylance-refactoring`, codemods) over
    free-form agent edits.
 4. Run the full test suite after every phase, not just at the end.
-5. `reviewer` should confirm no public API or behavior changed.
+5. `review` should confirm no public API or behavior changed.
 
 ### 7.6 Dependency or runtime upgrade
 
@@ -725,7 +733,7 @@ migration.
 ### 7.7 Review someone else's pull request
 
 1. `gh pr checkout <number>` in the `git` window.
-2. `reviewer`: "Review this branch against `main`; report defects with file
+2. `review`: "Review this branch against `main`; report defects with file
    and line evidence and the validation commands to run."
 3. Run the reported commands. Read the diff yourself in `:DiffviewOpen main`
    or the VS Code diff view.
@@ -753,9 +761,12 @@ migration.
 | Action | VS Code | Neovim + tmux |
 | --- | --- | --- |
 | Open project workspace | `code .` | `dev .` |
+| Create and switch branch | Copilot Chat -> `branch` | `codex` -> `$branch` |
 | Plan | Copilot Chat -> `plan` | `codex` -> `$plan` or `opencode run --agent plan` |
 | Implement | Copilot Chat -> `build` | `codex` -> `$build` or `opencode run --agent build` |
-| Review | Copilot Chat -> `reviewer` | `codex` -> `$reviewer` or `opencode run --agent reviewer` |
+| Review | Copilot Chat -> `review` | `codex` -> `$review` or `opencode run --agent review` |
+| Commit selected changes | Copilot Chat -> `commit` | `codex` -> `$commit` |
+| Push / authorized PR | Copilot Chat -> `push-pr` | `codex` -> `$push-pr` |
 | Review gate | `codex review --uncommitted` | same |
 | Inspect diff | Source Control view | `:DiffviewOpen` |
 | Run dev server | integrated terminal | `run` window, left pane |

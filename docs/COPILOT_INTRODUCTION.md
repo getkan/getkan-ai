@@ -24,7 +24,7 @@ operational procedures.
 | Next edit suggestions | Predicts the next related edit elsewhere in the file | Repetitive follow-on edits after a change |
 | Chat (ask) | Answers questions about code with workspace context | Explaining code, finding where something happens |
 | Agent mode | Plans, edits multiple files, runs terminal commands, iterates on errors | Multi-file features and fixes |
-| Custom agents | Named agents with their own instructions and tool list | Enforcing the `plan` / `build` / `reviewer` boundaries |
+| Custom agents | Named agents with their own instructions and tool list | Enforcing the `plan` / `build` / `review` boundaries |
 | Inline chat | Chat scoped to a selection in the editor | Small, local rewrites |
 
 Feature names and menus change between VS Code releases. If something below
@@ -37,13 +37,13 @@ does not match your version, check the VS Code Copilot documentation.
 | Repository instructions | `.github/copilot-instructions.md` | Applied automatically when this repository is open |
 | `getkan-ai` agent | `~/.copilot/agents/getkan-ai.agent.md` | Answers setup, workflow, and task-status questions from repository markdown |
 | `control-ai` agent | `~/.copilot/agents/control-ai.agent.md` | Configuration and control tasks |
-| `plan`, `build`, `reviewer` agents | `~/.copilot/agents/<name>.agent.md` | The plan, implement, review loop with tool-level limits |
+| `plan`, `build`, `review` agents | `~/.copilot/agents/<name>.agent.md` | The plan, implement, review loop with tool-level limits |
 | Skills | `~/.copilot/skills/<name>/SKILL.md` | Reusable workflows shared with Codex and OpenCode |
 
-`plan` and `reviewer` only have `read`, `search`, and `todo` tools, so they
+`plan` and `review` only have `read`, `search`, and `todo` tools, so they
 cannot edit files or run commands. `build` adds `edit`, `execute`, and
 `agent`. This is enforced by VS Code, not just by instructions, which makes
-Copilot the strictest client for the planning and review steps.
+Copilot the strictest client for planning and review.
 
 After changing a skill or `agent-config/subagents/<name>.config.json`, rerun
 `./scripts/install.sh` and restart VS Code. Do not hand-edit files in
@@ -56,7 +56,7 @@ After changing a skill or `agent-config/subagents/<name>.config.json`, rerun
 2. Follow the [editor workflow](EDITOR_WORKFLOW.md) to install the shared
    configuration, then restart VS Code.
 3. Open Copilot Chat and confirm `plan`, `build`,
-   `reviewer`, `getkan-ai`, and `control-ai` are listed.
+   `review`, `getkan-ai`, and `control-ai` are listed.
 4. Select `getkan-ai` and ask: "What is the current phase and the next open
    task?" A working install answers from `docs/TASKS.md` and
    `docs/ROADMAP.md` and names those files.
@@ -91,10 +91,14 @@ Inline suggestions read the surrounding file and open tabs. Improve them by:
   implementing or an existing test to mirror.
 - Closing unrelated tabs that may pull suggestions in the wrong direction.
 
-### Use the plan, build, reviewer loop for real changes
+### Use the plan, build, review loop for real changes
 
-Use the [editor workflow](EDITOR_WORKFLOW.md) for the plan/build/reviewer
+Use the [editor workflow](EDITOR_WORKFLOW.md) for the plan/build/review
 procedure and review gates.
+
+The `branch`, `review`, `commit`, and `push-pr` skills are independent. Ask
+for each operation separately; they do not chain into one another unless you
+explicitly request a sequence.
 
 ### Review agent-mode tool calls
 
@@ -136,7 +140,7 @@ the task changes, and restate the goal and acceptance criteria.
 | Need | Best choice |
 | --- | --- |
 | Inline completions while typing | Copilot |
-| Visual diff review and hard no-edit `plan` / `reviewer` | Copilot |
+| Visual diff review and hard no-edit `plan` / `review` | Copilot |
 | Browser-based UI verification inside the editor | Copilot |
 | OpenRouter models or a specific non-Copilot model | Codex or OpenCode |
 | Built-in uncommitted-change review gate | Codex (`codex review --uncommitted`) |
@@ -172,7 +176,7 @@ discovery, tools, and permissions. See
 - The right surface was used: inline, chat, agent, or a custom agent.
 - Context came from attached files or symbols, not long pasted blocks.
 - Ask repository questions with `ask`; larger changes go through `plan`,
-  `build`, and `reviewer`.
+  `build`, and `review`.
 - Follow the validation and review gates in the
   [editor workflow](EDITOR_WORKFLOW.md).
 - No secrets were attached to chat or entered tracked files.

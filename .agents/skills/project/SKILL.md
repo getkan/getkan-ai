@@ -182,7 +182,7 @@ with evidence and remaining work recorded. Pause for stage 4 approval.
    architecture, regressions, and applicable security/performance/compatibility
    concerns. Run the complete relevant local gate and end-to-end integration
    tests; stage 2 expected failures are not a final-readiness exception.
-3. Use `reviewer` for read-only inspection and validation-command discovery;
+3. Use `review` for read-only inspection and validation-command discovery;
    the implementing agent runs the checks. Follow required automated review
    gates without launching nested reviews from review mode. Include a
    branch/base review when task commits are outside an uncommitted review.

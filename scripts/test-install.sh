@@ -20,6 +20,10 @@ test_zshrc_for_run="$task_test_root/test.zshrc"
 test_plugin_manifest="$task_test_root/plugins.toml"
 test_codex_log="$task_test_root/codex.log"
 test_github_repo="$test_user_home/github/nested/project"
+export COPILOT_HOME="$test_copilot_home"
+export OPENCODE_HOME="$test_opencode_home"
+export AGENT_BIN_HOME="$test_bin_home"
+unset GETKAN_AI_PLUGIN_MANIFEST
 python_cmd=""
 python_seen=0
 
@@ -150,8 +154,23 @@ grep -Fqx 'env_key = "OPENROUTER_API_KEY"' "$test_codex_home/config.toml" ||
 
 for skill_dir in "$repo_root"/.agents/skills/*; do
   [[ -d "$skill_dir" ]] || continue
+  case "$(basename "$skill_dir")" in
+    reviewer|review-commit) continue ;;
+  esac
   assert_link "$test_agents_home/skills/$(basename "$skill_dir")" "$skill_dir"
   assert_link "$test_copilot_skills_home/$(basename "$skill_dir")" "$skill_dir"
+done
+for retired_skill in reviewer review-commit; do
+  [[ ! -e "$test_agents_home/skills/$retired_skill" &&
+    ! -L "$test_agents_home/skills/$retired_skill" ]] ||
+    fail "installer created a link for retired skill: $retired_skill"
+  [[ ! -e "$test_copilot_skills_home/$retired_skill" &&
+    ! -L "$test_copilot_skills_home/$retired_skill" ]] ||
+    fail "installer created a Copilot link for retired skill: $retired_skill"
+done
+for retired_agent in "$test_copilot_agents_home/reviewer.agent.md" "$test_opencode_home/agent/reviewer.md"; do
+  [[ ! -e "$retired_agent" && ! -L "$retired_agent" ]] ||
+    fail "installer generated a retired reviewer agent: $retired_agent"
 done
 
 [[ ! -e "$test_bin_home/agent" && ! -L "$test_bin_home/agent" ]] ||
@@ -286,9 +305,11 @@ installed_build_agent="$test_copilot_agents_home/build.agent.md"
 grep -Fqx 'tools: [read, edit, search, execute, todo, agent]' "$installed_build_agent" ||
   fail "generated build subagent has unexpected tools"
 
-installed_reviewer_agent="$test_copilot_agents_home/reviewer.agent.md"
-grep -Fqx 'tools: [read, search, todo]' "$installed_reviewer_agent" ||
-  fail "generated reviewer subagent has unexpected tools"
+installed_review_agent="$test_copilot_agents_home/review.agent.md"
+grep -Fqx 'name: "review"' "$installed_review_agent" ||
+  fail "generated review subagent is missing the review name"
+grep -Fqx 'tools: [read, search, todo]' "$installed_review_agent" ||
+  fail "generated review subagent has unexpected tools"
 
 installed_plan_opencode_agent="$test_opencode_home/agent/plan.md"
 [[ -f "$installed_plan_opencode_agent" && ! -L "$installed_plan_opencode_agent" ]] ||
@@ -322,7 +343,17 @@ grep -Fqx 'mode: all' "$installed_build_opencode_agent" ||
 grep -Fq '^tools:' "$installed_build_opencode_agent" &&
   fail "generated OpenCode build agent should not restrict tools"
 
-for subagent in ask plan build reviewer; do
+installed_review_opencode_agent="$test_opencode_home/agent/review.md"
+[[ -f "$installed_review_opencode_agent" && ! -L "$installed_review_opencode_agent" ]] ||
+  fail "expected generated OpenCode review agent file: $installed_review_opencode_agent"
+grep -Fqx 'mode: subagent' "$installed_review_opencode_agent" ||
+  fail "generated OpenCode review agent is missing mode: subagent"
+for denied_tool in bash edit patch task write; do
+  grep -Fqx "  $denied_tool: false" "$installed_review_opencode_agent" ||
+    fail "generated OpenCode review agent does not disable $denied_tool"
+done
+
+for subagent in ask plan build review; do
   source_skill="$repo_root/.agents/skills/$subagent/SKILL.md"
   for generated_agent in \
     "$test_copilot_agents_home/$subagent.agent.md" \
@@ -333,6 +364,122 @@ for subagent in ask plan build reviewer; do
       fail "generated agent body differs from source skill: $generated_agent"
   done
 done
+
+legacy_reviewer_body="$task_test_root/legacy-reviewer-body.md"
+cat >"$legacy_reviewer_body" <<'EOF'
+
+# reviewer
+
+This subagent inspects and validates; it does not edit files. Report defects
+for the user or the `build` subagent to fix.
+
+## Workflow
+
+1. Inspect the current branch: `git status --short`, a diff against its base
+   (`git diff <base>...HEAD` with a verified base), and relevant commit history.
+   Also inspect staged/unstaged changes and relevant untracked files.
+   A clean worktree or `git diff` alone does not cover committed feature tasks.
+   For feature development, read `project` and the applicable
+   SPEC/ROADMAP/TASKS. Identify the reviewed feature/project ID and its lifecycle
+   approvals, requirements coverage, integration/seed evidence, and task
+   validation separately from concurrent entries. Check shared-contract impacts;
+   never treat another feature's expected-red baseline as this feature's waiver.
+2. Read enough of the surrounding code for every changed file to judge
+   correctness, not only the diff hunks.
+3. Identify the repository's complete local test suite and any other checks it
+   defines (lint, type-check, build), then report the commands that must be run
+   by the parent agent. This read-only subagent does not execute commands.
+4. If the repository defines an automated review command (for example
+   `codex review --uncommitted`), report it for the parent agent to run. Include
+   a branch/base review (for example `codex review --base <base>`) when committed
+   tasks are outside that scope. Do not execute commands or launch a nested
+   review.
+5. Separate actionable defects from verified false positives; do not change
+   code to silence a false positive.
+
+## Boundaries
+
+- Never edit, create, move, or delete a file.
+- Never weaken a failing check to make it pass.
+- Stage 2 expected-red tests may satisfy documented skeleton-stage criteria,
+  but never final feature readiness. Report failed required checks, missing
+  approval evidence, and incomplete acceptance coverage as blockers.
+- Do not commit, push, or merge.
+
+## Output
+
+List the exact checks run and their results, every defect found, every
+false positive verified with a reason, and any remaining risk or required
+manual test.
+EOF
+mkdir -p "$test_agents_home/skills" "$test_copilot_skills_home"
+ln -s "$repo_root/.agents/skills/reviewer" "$test_agents_home/skills/reviewer"
+ln -s "$repo_root/.agents/skills/review-commit" "$test_agents_home/skills/review-commit"
+ln -s "$repo_root/.agents/skills/review-commit" "$test_copilot_skills_home/review-commit"
+user_owned_skill="$task_test_root/user-owned-reviewer-skill"
+mkdir -p "$user_owned_skill"
+ln -s "$user_owned_skill" "$test_copilot_skills_home/reviewer"
+
+cat >"$test_copilot_agents_home/reviewer.agent.md" <<'EOF'
+---
+description: "Review the changes in the current branch and identify the complete validation commands for the parent agent to run. Use when the user asks for a code review or pull-request readiness check against uncommitted or branch changes."
+name: "reviewer"
+tools: [read, search, todo]
+user-invocable: true
+---
+
+EOF
+cat "$legacy_reviewer_body" >>"$test_copilot_agents_home/reviewer.agent.md"
+cat >"$test_opencode_home/agent/reviewer.md" <<'EOF'
+---
+description: "Review the changes in the current branch and identify the complete validation commands for the parent agent to run. Use when the user asks for a code review or pull-request readiness check against uncommitted or branch changes."
+mode: subagent
+tools:
+  edit: false
+  write: false
+  patch: false
+  bash: false
+  task: false
+---
+
+EOF
+cat "$legacy_reviewer_body" >>"$test_opencode_home/agent/reviewer.md"
+cp "$test_opencode_home/agent/reviewer.md" "$task_test_root/legacy-opencode-reviewer.md"
+
+migration_log="$task_test_root/migration.log"
+HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
+  "$repo_root/scripts/install.sh" --dry-run >"$task_test_root/migration-dry-run.log" 2>/dev/null
+[[ -L "$test_agents_home/skills/reviewer" && -L "$test_agents_home/skills/review-commit" ]] ||
+  fail "dry-run migration removed a retired skill link"
+[[ -f "$test_copilot_agents_home/reviewer.agent.md" &&
+  -f "$test_opencode_home/agent/reviewer.md" ]] ||
+  fail "dry-run migration removed a historical generated agent"
+HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
+  COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
+  OPENCODE_HOME="$test_opencode_home" \
+  "$repo_root/scripts/install.sh" >"$task_test_root/migration.stdout" 2>"$migration_log"
+for stale_link in \
+  "$test_agents_home/skills/reviewer" \
+  "$test_agents_home/skills/review-commit" \
+  "$test_copilot_skills_home/review-commit"; do
+  [[ ! -e "$stale_link" && ! -L "$stale_link" ]] ||
+    fail "installer retained obsolete managed skill link: $stale_link"
+done
+[[ -L "$test_copilot_skills_home/reviewer" &&
+  "$(readlink "$test_copilot_skills_home/reviewer")" == "$user_owned_skill" ]] ||
+  fail "installer changed an unrelated user-owned skill link"
+for stale_agent in \
+  "$test_copilot_agents_home/reviewer.agent.md" \
+  "$test_opencode_home/agent/reviewer.md"; do
+  [[ ! -e "$stale_agent" && ! -L "$stale_agent" ]] ||
+    fail "installer retained a verified obsolete generated agent: $stale_agent"
+done
+assert_link "$test_agents_home/skills/review" "$repo_root/.agents/skills/review"
+assert_link "$test_copilot_skills_home/review" "$repo_root/.agents/skills/review"
+grep -Fq 'not a canonical Getkan AI link and was left untouched' "$migration_log" ||
+  fail "installer did not diagnose an unrelated legacy skill link"
+grep -Fq 'removed obsolete generated agent:' "$task_test_root/migration.stdout" ||
+  fail "installer did not report verified obsolete generated agents"
 
 shopt -s nullglob
 vscode_agent_backups=("$test_codex_home"/backups/getkan-ai-*/copilot/agents/getkan-ai.agent.md)
@@ -362,12 +509,37 @@ rm -- "$test_codex_home/AGENTS.md"
 ln -s "../link fixtures/managed instructions" "$test_codex_home/AGENTS.md"
 raw_instruction_target="$(readlink "$test_codex_home/AGENTS.md")"
 
+cat >"$test_copilot_agents_home/reviewer.agent.md" <<'EOF'
+---
+description: "User-owned reviewer"
+name: "reviewer"
+tools: [read, search, todo]
+user-invocable: true
+---
+
+Personal custom reviewer instructions.
+EOF
+cp "$task_test_root/legacy-opencode-reviewer.md" "$test_opencode_home/agent/reviewer.md"
+printf '\nUser-owned customization.\n' >>"$test_opencode_home/agent/reviewer.md"
+printf 'User-owned retired skill file.\n' >"$test_agents_home/skills/review-commit"
+user_agent_migration_log="$task_test_root/user-agent-migration.log"
 HOME="$test_user_home" CODEX_HOME="$test_codex_home" AGENTS_HOME="$test_agents_home" \
   COPILOT_HOME="$test_copilot_home" AGENT_BIN_HOME="$test_bin_home" \
   OPENCODE_HOME="$test_opencode_home" \
-  "$repo_root/scripts/install.sh" >/dev/null
+  "$repo_root/scripts/install.sh" >/dev/null 2>"$user_agent_migration_log"
 [[ "$(readlink "$test_codex_home/AGENTS.md")" == "$raw_instruction_target" ]] ||
   fail "idempotent install replaced an equivalent relative link"
+[[ -f "$test_copilot_agents_home/reviewer.agent.md" ]] ||
+  fail "installer removed a user-owned reviewer agent"
+cmp -s "$test_opencode_home/agent/reviewer.md" <(
+  cat "$task_test_root/legacy-opencode-reviewer.md"
+  printf '\nUser-owned customization.\n'
+) || fail "installer changed a customized historical OpenCode reviewer"
+grep -Fqx 'User-owned retired skill file.' "$test_agents_home/skills/review-commit" ||
+  fail "installer changed a user-owned retired skill file"
+grep -Fq 'not a recognized historical generated reviewer and was left untouched' \
+  "$user_agent_migration_log" ||
+  fail "installer did not diagnose a user-owned reviewer agent"
 
 shopt -s nullglob
 vscode_agent_backups=("$test_codex_home"/backups/getkan-ai-*/copilot/agents/getkan-ai.agent.md)
