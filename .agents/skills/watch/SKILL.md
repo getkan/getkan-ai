@@ -1,6 +1,6 @@
 ---
 name: watch
-description: Run a local development watch command (for example `npm run dev`, `vite`, `cargo watch`, `pytest --watch`) in a dedicated background terminal and monitor its output. Restart the process up to three times if it exits or crashes, then ask the user before continuing. Trigger on requests to start, watch, monitor, or keep a dev server or watcher running.
+description: "G-AI: Run a local development watch command (for example `npm run dev`, `vite`, `cargo watch`, `pytest --watch`) in a dedicated background terminal and monitor its output. Restart the process up to three times if it exits or crashes, then ask the user before continuing. Trigger on requests to start, watch, monitor, or keep a dev server or watcher running."
 ---
 
 # watch

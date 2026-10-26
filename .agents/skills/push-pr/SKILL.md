@@ -1,6 +1,6 @@
 ---
 name: push-pr
-description: Push the current Git branch to its remote, then ask whether to open a pull request when the branch is not named main or master. Use when asked to push changes, publish a branch, or push and open a PR. Do not create commits or force-push.
+description: "G-AI: Push the current Git branch to its remote, then ask whether to open a pull request when the branch is not named main or master. Use when asked to push changes, publish a branch, or push and open a PR. Do not create commits or force-push."
 ---
 
 # Push and Pull Request

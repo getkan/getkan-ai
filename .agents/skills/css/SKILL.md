@@ -1,6 +1,6 @@
 ---
 name: css
-description: Design, implement, debug, and test CSS for responsive interfaces, layout, cascade, accessibility, animation, and maintainable component styles.
+description: "G-AI: Design, implement, debug, and test CSS for responsive interfaces, layout, cascade, accessibility, animation, and maintainable component styles."
 ---
 
 # CSS

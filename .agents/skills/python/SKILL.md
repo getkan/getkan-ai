@@ -1,6 +1,6 @@
 ---
 name: python
-description: Build, debug, refactor, and test Python applications with project environments, typing, packaging, errors, security, and reliable command-line or service behavior.
+description: "G-AI: Build, debug, refactor, and test Python applications with project environments, typing, packaging, errors, security, and reliable command-line or service behavior."
 ---
 
 # Python

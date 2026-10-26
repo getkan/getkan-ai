@@ -1,6 +1,6 @@
 ---
 name: take-note
-description: Save the output of an AI Q/A session (the user's question and the assistant's answer) as a dated, appended entry in the ai_answers.md notes file. Trigger on requests to take a note, save this answer, note this down, or record a Q/A exchange for later reference.
+description: "G-AI: Save the output of an AI Q/A session (the user's question and the assistant's answer) as a dated, appended entry in the ai_answers.md notes file. Trigger on requests to take a note, save this answer, note this down, or record a Q/A exchange for later reference."
 ---
 
 # take-note

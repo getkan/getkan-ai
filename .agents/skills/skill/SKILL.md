@@ -1,6 +1,6 @@
 ---
 name: skill
-description: Create or update reusable skills in Getkan's canonical skills folder, or record a narrow durable learning directive in portable agent instructions or a skill. Use when asked to create, write, revise, update, or learn an agent instruction or skill.
+description: "G-AI: Create or update reusable skills in Getkan's canonical skills folder, or record a narrow durable learning directive in portable agent instructions or a skill. Use when asked to create, write, revise, update, or learn an agent instruction or skill."
 ---
 
 # Create, Update, or Learn a Skill

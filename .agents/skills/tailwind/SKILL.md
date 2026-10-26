@@ -1,6 +1,6 @@
 ---
 name: tailwind
-description: Build and refactor Tailwind CSS interfaces using utility composition, responsive variants, theme tokens, accessibility states, and project configuration.
+description: "G-AI: Build and refactor Tailwind CSS interfaces using utility composition, responsive variants, theme tokens, accessibility states, and project configuration."
 ---
 
 # Tailwind CSS

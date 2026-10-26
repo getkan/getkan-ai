@@ -1,6 +1,6 @@
 ---
 name: md-to-pdf
-description: Convert a Markdown file to a printable PDF or combine multiple Markdown files into one PDF using Pandoc and headless Chromium. Use when asked to export Markdown to PDF, print notes, or compile Markdown chapters while preserving text, code, tables, links, and diagrams.
+description: "G-AI: Convert a Markdown file to a printable PDF or combine multiple Markdown files into one PDF using Pandoc and headless Chromium. Use when asked to export Markdown to PDF, print notes, or compile Markdown chapters while preserving text, code, tables, links, and diagrams."
 ---
 
 # Markdown to PDF

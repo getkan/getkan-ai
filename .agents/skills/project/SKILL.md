@@ -1,6 +1,6 @@
 ---
 name: project
-description: Start read-only project sessions and guide setup, code research, bug fixes, and four-stage feature development. Use when the user invokes /project or asks to set up, explore, fix, or develop a project.
+description: "G-AI: Start read-only project sessions and guide setup, code research, bug fixes, and four-stage feature development. Use when the user invokes /project or asks to set up, explore, fix, or develop a project."
 ---
 
 # project

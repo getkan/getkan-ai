@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Investigate a task and produce a phased implementation plan without editing any file. Use when the user wants a plan, design, or analysis of the work required before code changes are made, or when the build subagent needs a plan generated first.
+description: "G-AI: Investigate a task and produce a phased implementation plan without editing any file. Use when the user wants a plan, design, or analysis of the work required before code changes are made, or when the build subagent needs a plan generated first."
 ---
 
 # plan

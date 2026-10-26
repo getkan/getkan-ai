@@ -1,6 +1,6 @@
 ---
 name: branch
-description: Create and switch to a new Git branch while preserving existing staged, unstaged, and untracked changes. Use when asked to branch existing work or move current changes onto a new branch. Do not review, commit, push, or open a pull request.
+description: "G-AI: Create and switch to a new Git branch while preserving existing staged, unstaged, and untracked changes. Use when asked to branch existing work or move current changes onto a new branch. Do not review, commit, push, or open a pull request."
 ---
 
 # Branch

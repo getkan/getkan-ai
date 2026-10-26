@@ -1,6 +1,6 @@
 ---
 name: ts
-description: Build, debug, refactor, and test TypeScript applications with strict types, safe APIs, module boundaries, and reliable compiler diagnostics.
+description: "G-AI: Build, debug, refactor, and test TypeScript applications with strict types, safe APIs, module boundaries, and reliable compiler diagnostics."
 ---
 
 # TypeScript

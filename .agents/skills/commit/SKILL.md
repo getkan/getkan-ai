@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Create a local Git commit for selected changes with a concise descriptive message. Use when asked to commit or save changes in Git. Preserve unrelated staged and unstaged work, honor required checks and hooks, and do not automatically review, branch, push, or open a pull request.
+description: "G-AI: Create a local Git commit for selected changes with a concise descriptive message. Use when asked to commit or save changes in Git. Preserve unrelated staged and unstaged work, honor required checks and hooks, and do not automatically review, branch, push, or open a pull request."
 ---
 
 # Commit

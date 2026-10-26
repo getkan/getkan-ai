@@ -1,6 +1,6 @@
 ---
 name: js
-description: Build, debug, refactor, and test JavaScript applications using modern ECMAScript, browser APIs, Node.js, package managers, and project conventions.
+description: "G-AI: Build, debug, refactor, and test JavaScript applications using modern ECMAScript, browser APIs, Node.js, package managers, and project conventions."
 ---
 
 # JavaScript

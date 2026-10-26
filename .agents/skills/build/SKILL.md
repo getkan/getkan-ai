@@ -1,6 +1,6 @@
 ---
 name: build
-description: Implement an authorized plan, including feature-specific tests. Use when the user authorizes implementation of a task; generates a plan with the plan subagent first when none exists.
+description: "G-AI: Implement an authorized plan, including feature-specific tests. Use when the user authorizes implementation of a task; generates a plan with the plan subagent first when none exists."
 ---
 
 # build

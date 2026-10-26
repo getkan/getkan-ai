@@ -1,6 +1,6 @@
 ---
 name: vue
-description: Build, debug, refactor, and test Vue applications with Composition API, reactivity, components, routing, state management, accessibility, and framework conventions.
+description: "G-AI: Build, debug, refactor, and test Vue applications with Composition API, reactivity, components, routing, state management, accessibility, and framework conventions."
 ---
 
 # Vue

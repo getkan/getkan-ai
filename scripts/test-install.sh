@@ -284,6 +284,8 @@ installed_plan_agent="$test_copilot_agents_home/plan.agent.md"
   fail "expected generated plan subagent file: $installed_plan_agent"
 grep -Fqx 'name: "plan"' "$installed_plan_agent" ||
   fail "generated plan subagent is missing the plan name"
+grep -Fq 'description: "G-AI:' "$installed_plan_agent" ||
+  fail "generated plan subagent has an invalid description"
 grep -Fqx 'tools: [read, search, todo]' "$installed_plan_agent" ||
   fail "generated plan subagent has unexpected tools"
 grep -Fq 'without editing any file. Use when the user wants a plan' "$installed_plan_agent" ||
@@ -314,6 +316,8 @@ grep -Fqx 'tools: [read, search, todo]' "$installed_review_agent" ||
 installed_plan_opencode_agent="$test_opencode_home/agent/plan.md"
 [[ -f "$installed_plan_opencode_agent" && ! -L "$installed_plan_opencode_agent" ]] ||
   fail "expected generated OpenCode plan agent file: $installed_plan_opencode_agent"
+grep -Fq 'description: "G-AI:' "$installed_plan_opencode_agent" ||
+  fail "generated OpenCode plan agent has an invalid description"
 grep -Fqx 'mode: all' "$installed_plan_opencode_agent" ||
   fail "generated OpenCode plan agent is missing mode: all"
 grep -Fqx '  edit: false' "$installed_plan_opencode_agent" ||

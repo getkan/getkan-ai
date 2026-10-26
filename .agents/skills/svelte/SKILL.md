@@ -1,6 +1,6 @@
 ---
 name: svelte
-description: Build, debug, refactor, and test Svelte and SvelteKit applications using idiomatic components, reactivity, stores, actions, routing, and accessibility.
+description: "G-AI: Build, debug, refactor, and test Svelte and SvelteKit applications using idiomatic components, reactivity, stores, actions, routing, and accessibility."
 ---
 
 # Svelte

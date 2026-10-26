@@ -1,6 +1,6 @@
 ---
 name: playwrite
-description: Verify frontend/UI behavior in a real browser using the Playwright tools (open_browser_page, click_element, run_playwright_code) instead of relying on static code reading alone. Use for ALL frontend development — React, Svelte, Vue, CSS, HTML, contenteditable, forms, animations, or any browser-rendered feature — when building, debugging, or validating a fix.
+description: "G-AI: Verify frontend/UI behavior in a real browser using the Playwright tools (open_browser_page, click_element, run_playwright_code) instead of relying on static code reading alone. Use for ALL frontend development — React, Svelte, Vue, CSS, HTML, contenteditable, forms, animations, or any browser-rendered feature — when building, debugging, or validating a fix."
 ---
 
 # Playwrite

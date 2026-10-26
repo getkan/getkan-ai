@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review staged, unstaged, untracked, or committed branch changes, give actionable feedback and suggested solutions, and identify validation commands. Use for code review, checking changes, or pull-request readiness. Do not implement fixes, branch, commit, push, or open a pull request.
+description: "G-AI: Review staged, unstaged, untracked, or committed branch changes, give actionable feedback and suggested solutions, and identify validation commands. Use for code review, checking changes, or pull-request readiness. Do not implement fixes, branch, commit, push, or open a pull request."
 ---
 
 # Review

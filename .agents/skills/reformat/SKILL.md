@@ -1,6 +1,6 @@
 ---
 name: reformat
-description: Reformat whitespace, line breaks, tabs, and bullet/numbered list markers in a block of text into clean Markdown without changing any words, punctuation, links, code, or meaning. Trigger on requests to clean up pasted or dictated text, fix broken line wraps, or normalize ad-hoc lists into consistent Markdown.
+description: "G-AI: Reformat whitespace, line breaks, tabs, and bullet/numbered list markers in a block of text into clean Markdown without changing any words, punctuation, links, code, or meaning. Trigger on requests to clean up pasted or dictated text, fix broken line wraps, or normalize ad-hoc lists into consistent Markdown."
 ---
 
 # reformat

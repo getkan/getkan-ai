@@ -1,6 +1,6 @@
 ---
 name: deep
-description: Use this skill for deliberate, high-confidence work that benefits from slower reasoning, evidence gathering, and careful validation before changing code.
+description: "G-AI: Use this skill for deliberate, high-confidence work that benefits from slower reasoning, evidence gathering, and careful validation before changing code."
 ---
 
 # Deep

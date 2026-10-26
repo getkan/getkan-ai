@@ -1,6 +1,6 @@
 ---
 name: react
-description: Build, debug, refactor, and test React applications with component boundaries, hooks, state, effects, accessibility, performance, and framework conventions.
+description: "G-AI: Build, debug, refactor, and test React applications with component boundaries, hooks, state, effects, accessibility, performance, and framework conventions."
 ---
 
 # React

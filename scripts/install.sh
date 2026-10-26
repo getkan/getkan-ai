@@ -600,6 +600,10 @@ subagent_description() {
     in_frontmatter && /^description:[[:space:]]*/ {
       value = $0
       sub(/^description:[[:space:]]*/, "", value)
+      if (value ~ /^".*"$/) {
+        sub(/^"/, "", value)
+        sub(/"$/, "", value)
+      }
       printf "%s", value
       collecting = 1
       next
