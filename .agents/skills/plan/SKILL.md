@@ -17,7 +17,7 @@ repository or any system or service state.
    documentation needed to understand current behavior.
 3. Identify the affected files, call sites, dependencies, risks, and any
    unresolved decision.
-   For feature development, read the `ai-project-manager` skill and relevant
+   For feature development, read the `project` skill and relevant
    SPEC, ROADMAP, and TASKS at their existing locations. Identify the selected
    feature/project ID, its lifecycle stage and approval evidence independently
    of concurrent entries, and cross-feature dependencies. If SPEC is missing,

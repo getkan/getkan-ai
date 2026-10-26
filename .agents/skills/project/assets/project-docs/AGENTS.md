@@ -1,5 +1,21 @@
 # Project instructions
 
+## Global coding standards
+
+1. **YAGNI:** Don't build functionality until it is needed.
+2. **DRY:** Extract a shared pattern after it appears a second time; avoid
+   premature abstraction.
+3. **Fail fast:** Prefer explicit errors over silent failures.
+4. **Keep it simple:** Start with the obvious solution; optimize only when
+   needed.
+5. **Delete thoughtfully:** Remove unnecessary code when it is safe to do so;
+   less code generally means fewer opportunities for bugs.
+6. **Use descriptive names:** Choose clear, self-documenting names for
+   variables, parameters, and API endpoints. Prefer names that make intent easy
+   for people and language models to understand, without adding needless
+   verbosity. For example, use `wait_until_observation_is_saved` rather than
+   `wait`.
+
 ## Purpose
 
 Describe the project, its users, and the outcome it provides.
@@ -27,22 +43,17 @@ commands used by this repository.
 
 - Run focused checks while implementing.
 - Run the complete required local gate before reporting the feature done.
-  Documented expected-red integration tests may satisfy stage 2 skeleton
-  criteria only; harness failures and regressions remain blockers.
 - Inspect the final status and diff.
 - Verify visible behavior with screenshots or equivalent rendered evidence.
 - Report skipped checks and unresolved manual testing explicitly.
 
 ## Documentation routing
 
-- Use `ai-project-manager` for feature development and its four-stage lifecycle.
-  Pause for approval between stages and for a commit reminder after each
-  validated implementation unit; continue without a commit only if instructed.
-- Read the existing SPEC for requirements, environment baseline, approved design,
-  and acceptance criteria. If absent, investigate the codebase and create a
-  concise SPEC before scaffolding.
-- Read ROADMAP for subprojects, dependencies, lifecycle stage, and approval gates.
-- Read TASKS for user-selected session work, tests, evidence, and commit status.
+- Use `project` for the feature-development lifecycle and its
+  approval and task checkpoints.
+- Use SPEC for requirements, approved design, and acceptance criteria;
+  ROADMAP for outcomes, dependencies, lifecycle status, and approvals; and
+  TASKS for selected work, tests, and validation evidence.
 
 Point these references to the repository's actual document locations when
 adapting this template. Preserve existing locations; default new files to

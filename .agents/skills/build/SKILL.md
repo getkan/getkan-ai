@@ -11,7 +11,7 @@ description: Implement an authorized plan, including feature-specific tests. Use
    workflow (or invoke the `plan` subagent) before editing anything.
 2. Read every file the plan touches, and the nearby callers or consumers,
    before changing it.
-   For feature development, read the `ai-project-manager` skill and existing
+   For feature development, read the `project` skill and existing
    SPEC/ROADMAP/TASKS. Establish the selected feature/project ID, its lifecycle
    stage, prerequisite evidence, stage approval, and user-selected session
    tasks before editing. Concurrent entries have independent approvals and
@@ -31,7 +31,7 @@ description: Implement an authorized plan, including feature-specific tests. Use
 
 - Stage 1 resolves requirements and technology choices before scaffolding.
   Reuse an existing SPEC; if absent, investigate the environment and record a
-  concise, sourced baseline as defined by `ai-project-manager`.
+  concise, sourced baseline as defined by `project`.
 - Stage 2 creates architecture/contracts, skeletons, deterministic seed data,
   and executable integration tests before detailed business logic. Run tests
   and record expected failures from unimplemented behavior; do not weaken

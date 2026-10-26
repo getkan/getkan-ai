@@ -6,7 +6,8 @@ This repository is the source of truth for Getkan's portable Codex
 configuration, reusable skills, and durable coding-agent instructions. The root
 `AGENTS.md` is the project maintenance file for this repository. The
 portable client instructions shared by Codex and Copilot are stored in
-`agent-config/AGENTS.md`.
+`agent-config/AGENTS.md`; its Claude Code counterpart is
+`agent-config/CLAUDE.md`.
 
 ## Operating principles
 
@@ -21,6 +22,22 @@ portable client instructions shared by Codex and Copilot are stored in
   cleanup.
 - Keep communication direct and concise. Skip flattery, filler, ceremonial
   openings, and emoji.
+
+## Global coding standards
+
+1. **YAGNI:** Don't build functionality until it is needed.
+2. **DRY:** Extract a shared pattern after it appears a second time; avoid
+   premature abstraction.
+3. **Fail fast:** Prefer explicit errors over silent failures.
+4. **Keep it simple:** Start with the obvious solution; optimize only when
+   needed.
+5. **Delete thoughtfully:** Remove unnecessary code when it is safe to do so;
+   less code generally means fewer opportunities for bugs.
+6. **Use descriptive names:** Choose clear, self-documenting names for
+   variables, parameters, and API endpoints. Prefer names that make intent easy
+   for people and language models to understand, without adding needless
+   verbosity. For example, use `wait_until_observation_is_saved` rather than
+   `wait`.
 
 ## Command execution
 

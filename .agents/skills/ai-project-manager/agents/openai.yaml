@@ -1,4 +1,0 @@
-interface:
-  display_name: "AI Project Manager"
-  short_description: "Guide four-stage feature delivery"
-  default_prompt: "Use $ai-project-manager to identify the current feature lifecycle stage, maintain SPEC/ROADMAP/TASKS within authorized scope, and stop at stage approvals and task commit checkpoints."

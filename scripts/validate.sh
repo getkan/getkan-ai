@@ -30,6 +30,7 @@ required_files=(
   "AGENTS.md"
   "README.md"
   "agent-config/AGENTS.md"
+  "agent-config/CLAUDE.md"
   "agent-config/config.toml"
   "agent-config/opencode.config.json"
   "agent-config/opencode.cli.json"
@@ -49,10 +50,11 @@ required_files=(
   ".github/workflows/validate.yml"
   "scripts/install.sh"
   "scripts/test-install.sh"
-  ".agents/skills/ai-project-manager/assets/project-docs/AGENTS.md"
-  ".agents/skills/ai-project-manager/assets/project-docs/SPEC.md"
-  ".agents/skills/ai-project-manager/assets/project-docs/ROADMAP.md"
-  ".agents/skills/ai-project-manager/assets/project-docs/TASKS.md"
+  ".agents/skills/project/assets/project-docs/AGENTS.md"
+  ".agents/skills/project/assets/project-docs/CLAUDE.md"
+  ".agents/skills/project/assets/project-docs/SPEC.md"
+  ".agents/skills/project/assets/project-docs/ROADMAP.md"
+  ".agents/skills/project/assets/project-docs/TASKS.md"
 )
 
 for relative in "${required_files[@]}"; do
@@ -65,22 +67,25 @@ for stage in \
   "Stage 3: Detailed design and implementation" \
   "Stage 4: Review and pull-request preparation"; do
   for lifecycle_file in \
-    ".agents/skills/ai-project-manager/SKILL.md" \
-    ".agents/skills/ai-project-manager/assets/project-docs/ROADMAP.md"; do
+    ".agents/skills/project/SKILL.md" \
+    ".agents/skills/project/assets/project-docs/ROADMAP.md"; do
     grep -Eq "^#{2,3} $stage$" "$repo_root/$lifecycle_file" ||
       fail "$lifecycle_file is missing lifecycle section: $stage"
   done
 done
 
 grep -Fqx '## Concurrent feature lifecycles' \
-  "$repo_root/.agents/skills/ai-project-manager/SKILL.md" ||
+  "$repo_root/.agents/skills/project/SKILL.md" ||
   fail "project-manager skill is missing per-feature lifecycle guidance"
 grep -Fqx '## Feature/project index' \
-  "$repo_root/.agents/skills/ai-project-manager/assets/project-docs/ROADMAP.md" ||
+  "$repo_root/.agents/skills/project/assets/project-docs/ROADMAP.md" ||
   fail "ROADMAP template is missing the feature/project index"
 grep -Fqx '## Feature/project lifecycle' \
-  "$repo_root/.agents/skills/ai-project-manager/assets/project-docs/ROADMAP.md" ||
+  "$repo_root/.agents/skills/project/assets/project-docs/ROADMAP.md" ||
   fail "ROADMAP template is missing the repeatable feature/project lifecycle"
+grep -Fq '[AGENTS.md](./AGENTS.md)' \
+  "$repo_root/.agents/skills/project/assets/project-docs/CLAUDE.md" ||
+  fail "CLAUDE template must point to AGENTS.md"
 
 if [[ -n "$python_cmd" ]]; then
   for config_file in "$repo_root"/agent-config/*.toml; do

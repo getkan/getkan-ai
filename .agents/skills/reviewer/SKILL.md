@@ -14,7 +14,7 @@ for the user or the `build` subagent to fix.
    (`git diff <base>...HEAD` with a verified base), and relevant commit history.
    Also inspect staged/unstaged changes and relevant untracked files.
    A clean worktree or `git diff` alone does not cover committed feature tasks.
-   For feature development, read `ai-project-manager` and the applicable
+   For feature development, read `project` and the applicable
    SPEC/ROADMAP/TASKS. Identify the reviewed feature/project ID and its lifecycle
    approvals, requirements coverage, integration/seed evidence, and task
    validation separately from concurrent entries. Check shared-contract impacts;

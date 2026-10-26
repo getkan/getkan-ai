@@ -14,8 +14,11 @@ Use this skill when the user wants the agent to learn a new instruction or behav
 This skill applies to either of these targets:
 
 - `agent-config/AGENTS.md` for portable global behavior
+- `agent-config/CLAUDE.md` as the matching Claude Code version of portable
+  global behavior
 - a skill file under `.agents/skills/<name>/SKILL.md` when the user wants to encode a reusable workflow rule
-- do not modify any files except for these
+- do not modify any files except for these; keep the two portable instruction
+  files aligned when changing shared global behavior
 
 ## Workflow
 

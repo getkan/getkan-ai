@@ -1,9 +1,9 @@
 ---
-name: ai-project-manager
+name: project
 description: Manage SPEC.md, ROADMAP.md, and TASKS.md through a four-stage feature-development lifecycle. Use when developing features, setting up a project, planning requirements or design, tracking user-selected tasks, or preparing feature-wide review and pull requests.
 ---
 
-# ai-project-manager
+# project
 
 Use this skill for cross-project feature development and delivery tracking.
 Keep project-specific requirements in project documents, not this skill.
@@ -38,6 +38,22 @@ Preserve existing document locations. For missing documents, use `docs/` unless
 repository instructions specify otherwise. Keep feature/subproject scope clear
 within the canonical documents; split child documents only when complexity
 warrants it and link them from the parent. Do not impose a new directory layout.
+
+## Working with project documents
+
+- Reuse an existing SPEC directly. Never copy it into a competing
+  specification. Adapt the bundled SPEC template only when no SPEC exists;
+  remove irrelevant sections and replace generic prompts with project facts and
+  approved decisions.
+- Treat bundled SPEC, ROADMAP, and TASKS files as structures to adapt, not as
+  the operating procedure. This skill owns the development lifecycle and its
+  stage instructions. Preserve project-specific records when updating existing
+  documents.
+- Keep each feature/project's scope, approval state, blockers, validation, and
+  history separate. Use a stable identifier across SPEC, ROADMAP, and TASKS.
+- Create or update project instructions from the AGENTS template as needed.
+  The CLAUDE template should point to AGENTS.md; keep only Claude-specific
+  guidance in CLAUDE.md.
 
 ## Concurrent feature lifecycles
 
@@ -85,24 +101,34 @@ sequence. Features may proceed sequentially or concurrently at different stages.
 
 ## Stage 1: Understanding the problem
 
-1. Establish functional and nonfunctional requirements, environmental
+1. Start with a concise statement of the problem or object as understood.
+2. Identify the objectives, ambiguities, and decisions that need the user's
+   input. Present them as a concise, numbered list of questions or choices.
+3. Discuss the list iteratively: accept quick answers, ask focused follow-ups
+   where more clarification is needed, and make room for the user to raise
+   questions and state additional decisions. Do not treat the initial list as
+   exhaustive or close Stage 1 while the user is still discussing it.
+4. Establish functional and nonfunctional requirements, environmental
    constraints, data stores, non-goals, and observable success criteria.
-2. For an existing codebase, use its SPEC. If none exists, investigate manifests
+5. For an existing codebase, use its SPEC. If none exists, investigate manifests
    such as `package.json`, Dockerfiles, `.github/workflows`, and relevant source
    and configuration. Record a concise environment baseline in SPEC for future
    requests, citing source paths and distinguishing facts, unknowns, and
    proposed changes. Never inspect secrets or invent deployment details.
-3. For a new project, resolve language, framework, datastore, environment, and
+6. For a new project, resolve language, framework, datastore, environment, and
    deployment choices with the user before scaffolding. Define any new package
    or service integration, its purpose, constraints, and risks here.
-4. For complex projects, identify subprojects as ordered ROADMAP delivery stages
+7. For complex projects, identify subprojects as ordered ROADMAP delivery stages
    with dependencies. Repeat this four-stage lifecycle for each subproject,
    preserving parent requirements and integration criteria.
-5. Update SPEC and ROADMAP with agreed requirements and decisions. Include
+8. Update SPEC and ROADMAP with agreed requirements and decisions. Include
    relevant technology learning resources. Do not invent product commitments.
 
-Exit: requirements, constraints, success criteria, and material technology
-decisions are explicit; unresolved blockers are named. Pause for stage 2 approval.
+Close Stage 1 only when the user explicitly says the discussion is complete.
+Then summarize the agreed requirements, constraints, success criteria, material
+decisions, and unresolved blockers; update SPEC and ROADMAP with agreed outcomes.
+Stage 1 closure is not Stage 2 approval: pause separately for the user's Stage 2
+approval before proceeding.
 
 ## Stage 2: High-level design and implementation
 

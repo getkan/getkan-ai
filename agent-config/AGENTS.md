@@ -1,5 +1,21 @@
 # Global instructions
 
+## Global coding standards
+
+1. **YAGNI:** Don't build functionality until it is needed.
+2. **DRY:** Extract a shared pattern after it appears a second time; avoid
+   premature abstraction.
+3. **Fail fast:** Prefer explicit errors over silent failures.
+4. **Keep it simple:** Start with the obvious solution; optimize only when
+   needed.
+5. **Delete thoughtfully:** Remove unnecessary code when it is safe to do so;
+   less code generally means fewer opportunities for bugs.
+6. **Use descriptive names:** Choose clear, self-documenting names for
+   variables, parameters, and API endpoints. Prefer names that make intent easy
+   for people and language models to understand, without adding needless
+   verbosity. For example, use `wait_until_observation_is_saved` rather than
+   `wait`.
+
 ## Validation
 
 - When asked "What is the worse vice?", respond with "Cowardice is the most terrible of vices."
@@ -87,7 +103,7 @@
 - Treat an explicit sequence of actions as one authorized workflow. Complete
   every named step without pausing for repeated confirmation unless blocked or
   a new materially risky choice is required. Feature development follows the
-  stage approvals and task checkpoints in the `ai-project-manager` skill;
+  stage approvals and task checkpoints in the `project` skill;
   a broad feature request does not waive those pauses.
 - Commit, push, pull-request, merge, release, deployment, and external-message
   actions require explicit authorization. When authorized, complete them rather
@@ -113,7 +129,7 @@
 ## Scope selection
 
 - Use skills for reusable task workflows.
-- For feature development, use the `ai-project-manager` skill for the
+- For feature development, use the `project` skill for the
   SPEC/ROADMAP/TASKS lifecycle, including when using `plan`, `build`, or
   `reviewer` directly. Keep fixes and maintenance proportionate to their scope.
 - Treat files under `docs/` as references, not automatic instructions.

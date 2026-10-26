@@ -1,9 +1,24 @@
 # Agent configuration layout
 
 This repository provides shared instructions and skills for GitHub Copilot in
-VS Code and OpenRouter-backed Codex, plus OpenCode-specific configuration and
-generated agents. The clients remain separate services; the installer adapts
-these sources to each client's discovery locations and capabilities.
+VS Code and OpenRouter-backed Codex, Claude Code instruction files, plus
+OpenCode-specific configuration and generated agents. The clients remain
+separate services; the installer adapts supported sources to each client's
+discovery locations and capabilities.
+
+## Claude Code instructions
+
+`CLAUDE.md` files are repository-local instruction sources for Claude Code.
+The root `CLAUDE.md` parallels the repository's `AGENTS.md`;
+`agent-config/CLAUDE.md` parallels the portable instructions in
+`agent-config/AGENTS.md`; and the project-docs asset contains matching
+`AGENTS.md` and `CLAUDE.md` templates. Keep each pair aligned when changing
+shared guidance.
+
+The installer does not install Claude Code instructions into a user-level
+`~/.claude` directory. Claude Code reads the repository-local files in the
+workspace, while the installer continues to link `agent-config/AGENTS.md` for
+Codex and render Copilot's custom agent from that shared source.
 
 ## What Codex loads automatically
 

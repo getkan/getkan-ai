@@ -21,6 +21,7 @@ is.
 | --- | --- |
 | `AGENTS.md` | Maintenance instructions for this repository |
 | `agent-config/AGENTS.md` | Portable instructions shared by Codex and Copilot |
+| `CLAUDE.md` and `agent-config/CLAUDE.md` | Matching repository and portable instructions for Claude Code |
 | `SPEC.md` | Canonical requirements, environment baseline, technology decisions, high-level design, and acceptance criteria |
 | `ROADMAP.md` | Delivery outcomes/subprojects, dependencies, lifecycle stage, risks, approval gates, and changes |
 | `TASKS.md` | High-level work refined into user-selected tasks, tests, evidence, status, and commit checkpoints |
@@ -35,8 +36,10 @@ Shared concepts:
   CI workflows, and relevant source/configuration; record a concise, sourced
   environment baseline for future requests. Use `docs/` for new documents
   unless repository instructions specify otherwise.
-- **Source of truth**: `agent-config/` holds instructions and rules shared by
-  Codex and Copilot, plus client-specific Codex and OpenCode configuration.
+- **Source of truth**: `agent-config/AGENTS.md` holds instructions shared by
+  Codex and Copilot; `agent-config/CLAUDE.md` keeps the same portable guidance
+  available to Claude Code. Keep these instruction files aligned.
+  `agent-config/` also holds client-specific Codex and OpenCode configuration.
   `.agents/skills/` holds reusable workflows shared by all three clients.
 - **Installer**: `./scripts/install.sh` (add `--dry-run` to preview) renders
   and links everything below into place. Rerun it after changing a skill, a
@@ -190,7 +193,7 @@ Do not hand-edit a rendered `~/.copilot/agents/*.agent.md` or
 2. **`build`** implements one authorized phase at a time, adds
    feature-specific tests, and runs focused validation after each phase. If no
    plan exists yet, it produces one first (calling `plan`, where the client
-   supports that). For features, it follows `ai-project-manager`: pause for
+   supports that). For features, it follows `project`: pause for
    stage approval and after each validated unit for the commit checkpoint.
 3. **`reviewer`** inspects the resulting diff and reports defects, false
    positives, and the complete validation commands for you or the parent agent
@@ -246,7 +249,7 @@ response before authorizing any edit.
 3. Restart VS Code. In Copilot Chat, confirm the agent picker lists `plan`,
    `build`, `reviewer`, `getkan-ai`, and `control-ai`.
 4. In each project, create or adopt `AGENTS.md` and locate and reuse the existing
-   SPEC, ROADMAP, and TASKS at their actual paths with `$ai-project-manager`
+   SPEC, ROADMAP, and TASKS at their actual paths with `$project`
    (Codex), or ask the `getkan-ai` agent to use that skill. Create missing
    planning documents under `docs/` unless repository instructions specify
    otherwise; do not create competing copies of existing documents.
@@ -457,7 +460,7 @@ VS Code.
 
 ### Four-stage feature development
 
-The `ai-project-manager` skill defines the cross-project contract. These stages
+The `project` skill defines the cross-project contract. These stages
 apply to feature development, not every maintenance edit. Keep planning-only
 requests and the `plan`/`reviewer` agents read-only: propose changes rather than
 creating documents or skeletons. Authorized editing is a separate action mode.
@@ -525,7 +528,7 @@ crossing its stage or task checkpoints.
    `SPEC.md`.
 5. Order outcomes, risks, exit criteria, and validation in `ROADMAP.md`.
 6. Break the current phase into reviewable work in `TASKS.md`.
-7. Use `plan` (or `$ai-project-manager`) to produce a requirement-linked plan
+7. Use `plan` (or `$project`) to produce a requirement-linked plan
    with automated and manual validation.
 8. For features, stop for approval at every lifecycle stage transition.
 9. Implement one approved phase with `build`, run focused checks, and inspect
@@ -613,7 +616,7 @@ Example: a REST controller for an `orders` resource in an existing service.
 
    Check the plan names a concrete existing controller to mirror, the routes,
    status codes, and the test command.
-3. Use `ai-project-manager` with `build`, pausing for approval between stages:
+3. Use `project` with `build`, pausing for approval between stages:
    - Stage 1: use the service's SPEC or investigate its environment if missing;
      record controller requirements and integration choices.
    - Stage 2: define DTOs/contracts, controller/service skeletons, seed orders,
@@ -630,14 +633,14 @@ Example: a REST controller for an `orders` resource in an existing service.
 
 ### 7.2 Create a new microservice
 
-1. Use `ai-project-manager` for stage 1: decide language/framework, datastore,
+1. Use `project` for stage 1: decide language/framework, datastore,
    deployment environment, authentication, callers, constraints, and measurable
    success with the user. Record SPEC and ROADMAP before scaffolding; pause
    for stage 2 approval.
 2. Create the repository under `~/github`, then run `./scripts/install.sh`
    from this repository so Codex trusts it.
-3. Bootstrap planning documents with `$ai-project-manager` (Codex) or the
-   `ai-project-manager` skill (Copilot): `AGENTS.md`, `docs/SPEC.md`,
+3. Bootstrap planning documents with `$project` (Codex) or the
+   `project` skill (Copilot): `AGENTS.md`, `docs/SPEC.md`,
    `docs/ROADMAP.md`, `docs/TASKS.md`.
 4. `plan`:
 
@@ -741,7 +744,8 @@ migration.
 ### 7.9 Capture what you learned
 
 - Use the `learn` skill to add a narrow rule to `agent-config/AGENTS.md` or a
-  skill when an agent repeats a mistake.
+  skill when an agent repeats a mistake. Keep `agent-config/CLAUDE.md` aligned
+  whenever shared global guidance changes.
 - Use the `take-note` skill to save a useful question and answer for later.
 
 ## 8. Quick reference

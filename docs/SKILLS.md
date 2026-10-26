@@ -54,7 +54,7 @@ clear `name` and `description`.
 
 ## Repository skills
 
-- `ai-project-manager`
+- `project`
 - `ask`
 - `build`
 - `create-skill`
@@ -96,15 +96,16 @@ The `watch` skill runs a local development watch command in a dedicated
 background terminal, restarts it up to three times on process failure, and
 leaves reported errors alone until the user asks for a specific fix.
 
-The `ai-project-manager` skill owns the cross-project feature lifecycle:
+The `project` skill owns the cross-project feature lifecycle:
 understand the problem; design and scaffold with seed data and integration
 tests; implement user-selected tasks with unit tests; review the whole feature
 and prepare PR evidence. Pause for approval between stages and for a commit
 reminder after each validated implementation unit. Reuse an existing SPEC;
 when missing, investigate and record a concise environment baseline. Expected-red
 tests are acceptable only for the stage 2 skeleton baseline, not final readiness.
-Its bundled SPEC, ROADMAP, TASKS, and AGENTS templates express that contract;
-existing project document locations and requirements remain canonical.
+Its bundled SPEC, ROADMAP, TASKS, and AGENTS files are structures to adapt.
+The skill owns the operating procedure, while existing project document
+locations and requirements remain canonical.
 Each feature/project has its own four-stage lifecycle. ROADMAP tracks multiple
 entries over time, including concurrent entries at different stages, with
 independent approvals and evidence linked by feature/project ID across SPEC
