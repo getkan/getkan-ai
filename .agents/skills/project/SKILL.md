@@ -151,6 +151,12 @@ sequence. Features may proceed sequentially or concurrently at different stages.
 
 ## Entry and authorization
 
+Before beginning any feature-development work, including Stage 1 investigation
+or planning, recommend creating a dedicated feature branch. Make clear that
+this is optional; do not create or switch branches without explicit
+authorization. If the user already has a suitable feature branch, acknowledge
+it instead of recommending another.
+
 1. Inspect applicable instructions, the active branch, current changes, relevant
    code, tests, and existing planning documents. Preserve unrelated changes.
 2. Identify the selected feature/project entry, its lifecycle stage, evidence of
@@ -160,9 +166,12 @@ sequence. Features may proceed sequentially or concurrently at different stages.
    subagent remain read-only: propose document updates or skeletons, never
    create them. Setup/Implement modes may edit only within authorized scope.
 4. At every stage exit for that entry, summarize outputs, checks, and blockers;
-   record the approval checkpoint when editing is authorized, request approval
-   for the next stage, and stop. A broad feature request or list of future
-   tasks is not approval to cross a stage boundary.
+   recommend an optional commit of that stage's changes when there are changes
+   to commit and repository commit checks permit it. Record the approval
+   checkpoint when editing is authorized, request approval for the next stage
+   (or handoff after Stage 4), and stop. Declining a commit does not block stage
+   approval. A broad feature request or list of future tasks is not approval
+   to cross a stage boundary.
 
 ## Stage 1: Understanding the problem
 
@@ -254,6 +263,10 @@ with evidence and remaining work recorded. Pause for stage 4 approval.
 4. Prepare a PR summary using the repository template when present: changed
    scope, decisions, exact checks and results, manual evidence, skipped checks,
    residual risks, and blockers. Do not report ready while required gates fail.
+5. Before PR submission, recommend optionally squashing the feature's commits
+   into a focused commit. Explain that this is not required for PR readiness
+   and never squash or otherwise rewrite history without explicit authorization.
+   Preserve repository history policies and do not force-push implicitly.
 
 Exit: feature-wide review and required validation pass, findings are addressed,
 and PR evidence is prepared. Stop for handoff. Commit, push, PR creation,
